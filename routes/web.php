@@ -70,7 +70,6 @@ Route::group(['middleware' => 'auth'], function () {
     Route::resource('modes', App\Http\Controllers\ModeController::class);
     Route::resource('patients', App\Http\Controllers\PatientController::class);
     Route::resource('collection', App\Http\Controllers\CollectionController::class);
-    Route::resource('schedules', App\Http\Controllers\ScheduleController::class);
     Route::resource('bills', App\Http\Controllers\BillController::class);
     Route::resource('invoices', App\Http\Controllers\InvoiceController::class);
     Route::resource('ecat', App\Http\Controllers\EcatController::class);
