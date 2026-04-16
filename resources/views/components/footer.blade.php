@@ -1,112 +1,131 @@
-        <!--Site Footer Start-->
-        <footer class="site-footer site-footer-two">
-            <div class="site-footer__shape-1">
-                <img src="assets/images/shapes/site-footer-shape-1.png" alt="">
-            </div>
-            <div class="site-footer__shape-2">
-                <img src="assets/images/shapes/site-footer-shape-2.png" alt="">
-            </div>
-            <div class="site-footer__top">
-                <div class="container">
-                    <div class="site-footer__top-inner">
-                        <div class="row">
-                            <div class="col-xl-3 col-lg-6 col-md-6 wow fadeInUp" data-wow-delay="100ms">
-                                <div class="footer-widget__column footer-widget__about">
-                                    <div class="footer-widget__logo">
-                                        <a href="index.html"><img src="assets/images/resources/logo-1.svg" alt=""></a>
-                                    </div>
-                                    <p class="footer-widget__about-text">Phasellus ultricies aliquam volutpat
-                                        ullamcorper laoreet neque, a lacinia
-                                        curabitur lacinia mollis</p>
-                                    <div class="site-footer__social">
-                                        <a href="#"><i class="icon-facebook"></i></a>
-                                        <a href="#"><i class="icon-twitter"></i></a>
-                                        <a href="#"><i class="icon-link-in"></i></a>
-                                        <a href="#"><i class="icon-youtube"></i></a>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-lg-6 col-md-6 wow fadeInUp" data-wow-delay="200ms">
-                                <div class="footer-widget__column footer-widget__quick-link">
-                                    <div class="footer-widget__title-box">
-                                        <h3 class="footer-widget__title">Quick Links</h3>
-                                    </div>
-                                    <ul class="footer-widget__quick-link-list list-unstyled">
-                                        <li><a href="about.html"><span class="icon-andle-dabble"></span>About Us</a></li>
-                                        <li><a href="team1.html"><span class="icon-andle-dabble"></span>Our Team</a></li>
-                                        <li><a href="pricing.html"><span class="icon-andle-dabble"></span>Our Pricing</a></li>
-                                        <li><a href="{{ route('bookAppointment') }}"><span class="icon-andle-dabble"></span>Appointment</a></li>
-                                        <li><a href="contact.html"><span class="icon-andle-dabble"></span>Contact Us</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-lg-6 col-md-6 wow fadeInUp" data-wow-delay="300ms">
-                                <div class="footer-widget__column footer-widget__services">
-                                    <div class="footer-widget__title-box">
-                                        <h3 class="footer-widget__title">Our Services</h3>
-                                    </div>
-                                    <ul class="footer-widget__quick-link-list list-unstyled">
-                                        <li><a href="chiropractic-care.html"><span class="icon-andle-dabble"></span>Chiropractic Therapy</a></li>
-                                        <li><a href="massages-therapy.html"><span class="icon-andle-dabble"></span>Massage Therapy</a></li>
-                                        <li><a href="trained-therapists.html"><span class="icon-andle-dabble"></span>Trained Therapists</a></li>
-                                        <li><a href="laser-therapy.html"><span class="icon-andle-dabble"></span>Low Level Laser</a></li>
-                                        <li><a href="laser-therapy.html"><span class="icon-andle-dabble"></span>Acupuncture</a></li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="col-xl-3 col-lg-6 col-md-6 wow fadeInUp" data-wow-delay="400ms">
-                                <div class="footer-widget__column footer-widget__contact">
-                                    <div class="footer-widget__title-box">
-                                        <h3 class="footer-widget__title">Contact Info</h3>
-                                    </div>
-                                    <ul class="footer-widget__contact-list list-unstyled">
-                                        <li>
-                                            <div class="icon">
-                                                <span class="icon-pin"></span>
-                                            </div>
-                                            <div class="content">
-                                                <span>Location:</span>
-                                                <p>4517 Washington. mg Manchester,<br> Kentucky 39495</p>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="icon">
-                                                <span class="icon-clock"></span>
-                                            </div>
-                                            <div class="content">
-                                                <span>Opening Hours: </span>
-                                                <p>Mon - Sat: 10.00 AM - 4.00 PM</p>
-                                            </div>
-                                        </li>
-                                        <li>
-                                            <div class="icon">
-                                                <span class="icon-phone"></span>
-                                            </div>
-                                            <div class="content">
-                                                <span>Phone Call: </span>
-                                                <p>
-                                                    <a href="tel:20866660112">208-6666-0112, </a>
-                                                    <a href="tel:30855550113">308-5555-0113</a>
-                                                </p>
-                                            </div>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
+    <!-- Footer Start -->
+     <footer class="main-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3">
+                    <!-- About Footer Start -->
+                    <div class="about-footer">
+                        <!-- Footer Logo Start -->
+                        <div class="footer-logo">
+                            <img src="{{ url('front/images/logo.png') }}" alt="">
                         </div>
+                        <!-- Footer Logo End -->
+
+                        <!-- About Footer Content Start -->
+                        <div class="about-footer-content">
+                            <p>We understand that injuries and acute pain can happen unexpectedly. Our emergency physiotherapy.</p>
+                        </div>
+                        <!-- Footer Social Links Start -->
+                        <div class="footer-social-links">
+                            <ul>
+                                <li><a href="#"><i class="fa-brands fa-facebook-f"></i></a></li>
+                                <li><a href="#"><i class="fa-brands fa-twitter"></i></a></li>
+                                <li><a href="#"><i class="fa-brands fa-linkedin-in"></i></a></li>
+                                <li><a href="#"><i class="fa-brands fa-instagram"></i></a></li>
+                            </ul>
+                        </div>
+                        <!-- Footer Social Links End -->
+
                     </div>
+                    <!-- About Footer End -->
                 </div>
-            </div>
-            <div class="site-footer__bottom">
-                <div class="container">
-                    <div class="site-footer__bottom-inner">
-                        <p class="site-footer__bottom-text">© All Copyright 2024 by Chirofind</p>
-                        <ul class="list-unstyled site-footer__bottom-menu">
-                            <li><a href="about.html">Trams & Condition</a></li>
-                            <li><a href="about.html">Privacy Policy</a></li>
+
+                <div class="col-lg-3 col-md-4">
+                    <!-- About Links Start -->
+                    <div class="about-working-hour">
+                        <h3>working hours</h3>
+                        <ul>
+                            <li>mon to fri : 9:00 to 7:00</li>
+                            <li>sat : 9:00AM to 7:00PM</li>
+                            <li>sun : closed</li>
                         </ul>
-                        <a href="#" data-target="html" class="scroll-to-target scroll-to-top"><i class="fas fa-arrow-up"></i></a>
+                    </div>
+                    <!-- About Links End -->
+                </div>
+
+                <div class="col-lg-3 col-md-4">
+                    <!-- About Links Start -->
+                    <div class="about-service-list">
+                        <h3>more services</h3>
+                        <ul>
+                            <li><a href="#">manual therapy</a></li>
+                            <li><a href="#">chronic pain</a></li>
+                            <li><a href="#">hand therapy</a></li>
+                        </ul>
+                    </div>
+                    <!-- About Links End -->
+                </div>
+
+                <div class="col-lg-3 col-md-4">
+                    <!-- About Links Start -->
+                    <div class="footer-contact">
+                        <h3>contact</h3>
+                        <!-- Footer Contact Details Start -->
+                        <div class="footer-contact-details">
+                            <!-- Footer Info Box Start -->
+                            <div class="footer-info-box">
+                                <div class="icon-box">
+                                    <img src="{{ url('front/images/icon-phone.svg') }}" alt="">
+                                </div>
+                                <div class="footer-info-box-content">
+                                    <p>+91 9760799933</p>
+                                </div>
+                            </div>
+                            <!-- Footer Info Box End -->
+
+                            <!-- Footer Info Box Start -->
+                            <div class="footer-info-box">
+                                <div class="icon-box">
+                                    <img src="{{ url('front/images/icon-mail.svg') }}" alt="">
+                                </div>
+                                <div class="footer-info-box-content">
+                                    <p>dr.indoliaphysio@gmail.com</p>
+                                </div>
+                            </div>
+                            <!-- Footer Info Box End -->
+
+                            <!-- Footer Info Box Start -->
+                            <div class="footer-info-box">
+                                <div class="icon-box">
+                                    <img src="{{ url('front/images/icon-location.svg') }}" alt="">
+                                </div>
+                                <div class="footer-info-box-content">
+                                    <p>Dayal Bagh, Agra</p>
+                                </div>
+                            </div>
+                            <!-- Footer Info Box End -->
+                        </div>
+                        <!-- Footer Contact Details End -->
+                    </div>
+                    <!-- About Links End -->
+                </div>
+            </div>
+
+            <!-- Footer Copyright Section Start -->
+            <div class="footer-copyright">
+                <div class="row align-items-center">
+                    <div class="col-lg-6 col-md-6">
+                        <!-- Footer Copyright Start -->
+                        <div class="footer-copyright-text">
+                            <p>Copyright 2024 Physiocare. All Rights Reserved.</p>
+                        </div>
+                        <!-- Footer Copyright End -->
+                    </div>
+
+                    <div class="col-lg-6 col-md-6">
+                        <!-- Footer Social Link Start -->
+                        <div class="footer-links">
+                            <ul>
+                                <li><a href="#">about us</a></li>
+                                <li><a href="#">services</a></li>
+                                <li><a href="#">contact us</a></li>
+                            </ul>
+                        </div>
+                        <!-- Footer Social Link End -->
                     </div>
                 </div>
             </div>
-        </footer>
+            <!-- Footer Copyright Section End -->
+        </div>
+     </footer>
+    <!-- Footer End -->

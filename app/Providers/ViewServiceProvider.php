@@ -21,13 +21,13 @@ class ViewServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-                View::composer('*', function ($view) {
+        //         View::composer('*', function ($view) {
 
-            $sliders = Slider::where('status',1)
-                        ->orderBy('order')
-                        ->get();
+        //     $sliders = Slider::where('status',1)
+        //                 ->orderBy('order')
+        //                 ->get();
 
-            $view->with('globalSliders', $sliders);
-        });
+        //     $view->with('globalSliders', $sliders);
+        // });
     }
 }

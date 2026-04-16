@@ -368,10 +368,28 @@
                         <i class="nav-icon fas fa-file"></i>
                         <p>
                             Custom Range Report
-                            
+
                         </p>
                     </a>
 
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-user"></i>
+                        <p>
+                            Website Settings
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('admin.sliders.index') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Sliders Settings</p>
+                            </a>
+                        </li>
+
+                    </ul>
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link">
@@ -391,7 +409,6 @@
 
                     </ul>
                 </li>
-
 
                 <li class="nav-item">
                     <a href="{{ route('logout') }}" class="nav-link" onclick="event.preventDefault();

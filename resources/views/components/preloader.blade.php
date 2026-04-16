@@ -1,8 +1,8 @@
-    <!-- preloader -->
-    <div id="preloader">
-        <div class="preloader">
-            <span></span>
-            <span></span>
-        </div>
-    </div>
-    <!-- preloader end  -->
+    <!-- Preloader Start -->
+	<div class="preloader">
+		<div class="loading-container">
+			<div class="loading"></div>
+			<div id="loading-icon"><img src="{{ url('front/images/loader.png') }}" alt=""></div>
+		</div>
+	</div>
+	<!-- Preloader End -->

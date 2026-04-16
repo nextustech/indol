@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Pagination\Paginator;
 use App\Models\Option;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -21,25 +23,23 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        \Schema::defaultStringLength(191);
-
+        Schema::defaultStringLength(191);
 
         try {
-            \DB::connection()->getPdo();
-    // test
-            //Auto-loading options to reduce the query
-            $optionsQuery = Option::all('option_key', 'option_value');
-            $options = [];
-            if ($optionsQuery->count()){
-                foreach ($optionsQuery as $option){
-                    $options[$option->option_key] = $option->option_value;
-                }
-            }
+            DB::connection()->getPdo();
 
-            $GLOBALS['options'] = $options;
-
-            //checking if database connected
             $GLOBALS['is_db_connected'] = true;
+
+            if (auth()->check()) {
+                $optionsQuery = Option::all('option_key', 'option_value');
+                $options = [];
+                if ($optionsQuery->count()) {
+                    foreach ($optionsQuery as $option) {
+                        $options[$option->option_key] = $option->option_value;
+                    }
+                }
+                $GLOBALS['options'] = $options;
+            }
 
             /**
              * Set dynamic configuration for third party services
@@ -94,7 +94,7 @@ class AppServiceProvider extends ServiceProvider
             //             'name' => get_option('site_name'),
             //         ]
             // ];
-           // config($emailConfig);
+            // config($emailConfig);
 
             view()->composer('*', function ($view) {
 
@@ -106,8 +106,7 @@ class AppServiceProvider extends ServiceProvider
 
             //die("Could not connect to the database.  Please check your configuration.");
         }
-                Paginator::useBootstrap(); // For Bootstrap 5
-
+        Paginator::useBootstrap(); // For Bootstrap 5
 
     }
 }

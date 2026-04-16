@@ -196,8 +196,11 @@ public function makeAbsent(Request $request, Schedule $schedule)
         }
 
         // 1️⃣ Mark sitting ABSENT
-        $schedule->update([
-            'status'     => 2, // ABSENT
+
+        DB::table('schedules')
+        ->where('id', $schedule->id)
+        ->update([
+            'status' => 2,
             'attendedAt' => null,
         ]);
 
@@ -241,7 +244,10 @@ public function makeAbsent(Request $request, Schedule $schedule)
             $allowed = array_key_exists($dow, $rules) ? (int) $rules[$dow] : $perDay;
 
             $countOnCandidate = (clone $baseQuery)
-                ->whereDate('sittingDate', $candidate)
+                ->whereBetween('sittingDate', [
+                        $candidate->copy()->startOfDay(),
+                        $candidate->copy()->endOfDay()
+                    ])
                 ->count();
 
             if ($allowed > 0 && $countOnCandidate < $allowed) {
