@@ -46,4 +46,11 @@ class Patient extends Model
     public function images(){
         return $this->hasmany(Image::class);
     }
+
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+
 }

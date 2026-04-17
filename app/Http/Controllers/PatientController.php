@@ -33,18 +33,30 @@ class PatientController extends Controller
      * Display a listing of the resource.
      */
 
-      public function index(Request $request)
+    public function index(Request $request)
     {
-        $brnches = loggedUser()->branches;
-        $branches = loggedUser()->branches->pluck('id')->toArray();
+        $user = loggedUser();
 
-        $patients = Patient::with('branches')
-            ->whereHas('branches', function ($q) use ($branches) {
-                $q->whereIn('branches.id', $branches);
+        $brnches = $user->branches;
+        $branchIds = $brnches->pluck('id');
+
+        $patients = Patient::query()
+            ->with('branches')
+
+            // ✅ Restrict to user's branches
+            ->whereHas('branches', function ($q) use ($branchIds) {
+                $q->whereIn('branches.id', $branchIds);
             });
 
         // -----------------------
-        // BRANCH FILTER
+        // 🔐 ACCESS CONTROL
+        // -----------------------
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $patients->where('created_by', $user->id);
+        }
+
+        // -----------------------
+        // 🏢 BRANCH FILTER
         // -----------------------
         if ($request->filled('branch_id')) {
             $patients->whereHas('branches', function ($q) use ($request) {
@@ -53,8 +65,7 @@ class PatientController extends Controller
         }
 
         // -----------------------
-        // DATE RANGE FILTER
-        // (Assuming your patient table has a "date" column)
+        // 📅 DATE RANGE FILTER
         // -----------------------
         if ($request->filled('date_from') && $request->filled('date_to')) {
             $patients->whereBetween('date', [
@@ -63,8 +74,12 @@ class PatientController extends Controller
             ]);
         }
 
-        // Final paginate
-        $patients = $patients->orderBy('date', 'desc')->paginate(20);
+        // -----------------------
+        // 🚀 FINAL RESULT
+        // -----------------------
+        $patients = $patients
+            ->orderByDesc('date')
+            ->paginate(20);
 
         return view('patients.index', compact('patients', 'brnches'));
     }
@@ -87,34 +102,101 @@ class PatientController extends Controller
     /**
      * Display the specified resource.
      */
+    // public function show(Patient $patient)
+    // {
+    //     $now = Carbon::now();
+    //     $dt = Carbon::createFromFormat('Y-m-d H', $now->toDateString().'00')->toDateTimeString();
+    //     $active = Payment::where('patient_id',$patient->id)->where('active',1)->first();
+    //     if($active){
+    //             if($active->pakage_id  != null){
+    //             $schedules = Schedule::where('patient_id',$patient->id)->where('pakage_id',$active->pakage_id)->where('payment_id',$active->id)->orderBy('sittingDate', 'asc')->orderBy('visit_order','asc')->get();
+    //         }elseif($active->pakage_id == null){
+    //             $schedules = Schedule::where('patient_id',$patient->id)->where('payment_id',$active->id)->orderBy('sittingDate', 'asc')->orderBy('visit_order','asc')->get();
+    //         }else{
+    //             $schedules = null;
+    //         }
+    //         $attendedSittings = Schedule::where('patient_id',$patient->id)->where('payment_id',$active->id)->whereNotNull('attendedAt')->count();
+
+    //     }
+    //     else{
+    //         $schedules = null;
+    //         $attendedSittings = NULL;
+    //     }
+    //     // return $schedules;
+    //   $productImages = Image::where('patient_id',$patient->id)->get();
+
+    //     return view('patients.show',compact('patient','dt','schedules','active','attendedSittings','productImages'));
+
+    //    // return view('patients.show', compact('patient'));
+    // }
+
     public function show(Patient $patient)
-    {
-        $now = Carbon::now();
-        $dt = Carbon::createFromFormat('Y-m-d H', $now->toDateString().'00')->toDateTimeString();
-        $active = Payment::where('patient_id',$patient->id)->where('active',1)->first();
-        if($active){
-                if($active->pakage_id  != null){
-                $schedules = Schedule::where('patient_id',$patient->id)->where('pakage_id',$active->pakage_id)->where('payment_id',$active->id)->orderBy('sittingDate', 'asc')->orderBy('visit_order','asc')->get();
-            }elseif($active->pakage_id == null){
-                $schedules = Schedule::where('patient_id',$patient->id)->where('payment_id',$active->id)->orderBy('sittingDate', 'asc')->orderBy('visit_order','asc')->get();
-            }else{
-                $schedules = null;
-            }
-            $attendedSittings = Schedule::where('patient_id',$patient->id)->where('payment_id',$active->id)->whereNotNull('attendedAt')->count();
+{
+    $user = loggedUser();
 
+    // -----------------------
+    // 🔐 ACCESS CONTROL (IMPORTANT)
+    // -----------------------
+        if ($user->roles->pluck('name')->contains('HomePhysiotherapist')
+            && $patient->created_by !== $user->id) {
+
+            abort(403, 'Unauthorized access');
         }
-        else{
-            $schedules = null;
-            $attendedSittings = NULL;
+    // -----------------------
+    // 📅 CURRENT DATE START
+    // -----------------------
+    $dt = now()->startOfDay();
+
+    // -----------------------
+    // 💳 ACTIVE PAYMENT
+    // -----------------------
+    $active = Payment::where('patient_id', $patient->id)
+        ->where('active', 1)
+        ->latest()
+        ->first();
+
+    $schedules = collect(); // default empty collection
+    $attendedSittings = 0;
+
+    if ($active) {
+
+        // -----------------------
+        // 📅 SCHEDULE QUERY (optimized)
+        // -----------------------
+        $scheduleQuery = Schedule::where('patient_id', $patient->id)
+            ->where('payment_id', $active->id);
+
+        if (!empty($active->pakage_id)) {
+            $scheduleQuery->where('pakage_id', $active->pakage_id);
         }
-        // return $schedules;
-      $productImages = Image::where('patient_id',$patient->id)->get();
 
-        return view('patients.show',compact('patient','dt','schedules','active','attendedSittings','productImages'));
+        $schedules = $scheduleQuery
+            ->orderBy('sittingDate')
+            ->orderBy('visit_order')
+            ->get();
 
-       // return view('patients.show', compact('patient'));
+        // -----------------------
+        // ✅ ATTENDED COUNT (no duplicate base query)
+        // -----------------------
+        $attendedSittings = (clone $scheduleQuery)
+            ->whereNotNull('attendedAt')
+            ->count();
     }
 
+    // -----------------------
+    // 🖼️ IMAGES
+    // -----------------------
+    $productImages = Image::where('patient_id', $patient->id)->get();
+
+    return view('patients.show', compact(
+        'patient',
+        'dt',
+        'schedules',
+        'active',
+        'attendedSittings',
+        'productImages'
+    ));
+}
     /**
      * Show the form for editing the specified resource.
      *

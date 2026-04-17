@@ -49,4 +49,11 @@ class User extends Authenticatable
         return $this->belongsToMany(Branch::class);
     }
 
+    public function patients()
+    {
+        return $this->hasMany(Patient::class, 'created_by');
+    }
+
+    
+
 }
