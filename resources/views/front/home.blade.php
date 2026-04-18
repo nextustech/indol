@@ -21,7 +21,7 @@
                         <!-- Hero Content Body Start -->
                         <div class="hero-content-body wow fadeInUp" data-wow-delay="0.5s">
                             <a href="#" class="btn-default">explore services</a>
-                            <a href="#" class="btn-default btn-highlighted">book appointment</a>
+                            <a href="{{ route('bookAppointment') }}" class="btn-default btn-highlighted">book appointment</a>
                         </div>
                         <!-- Hero Content Body End -->
 
@@ -264,7 +264,7 @@
 
                             <!-- Appointment Button Start -->
                             <div class="appointment-btn wow fadeInUp" data-wow-delay="1s">
-                                <a href="#" class="btn-default">Make an appointment</a>
+                                <a href="{{ route('bookAppointment') }}" class="btn-default">Make an appointment</a>
                             </div>
                             <!-- Appointment Button End -->
                         </div>

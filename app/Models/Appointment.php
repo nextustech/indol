@@ -22,6 +22,12 @@ class Appointment extends Model
         'status'
     ];
 
+    public function patient()
+    {
+        return $this->belongsTo(Patient::class);
+    }
+
+
     // Belongs to Branch
     public function branch()
     {

@@ -55,6 +55,7 @@
         $('[data-toggle="tooltip"]').tooltip();
     });
 </script>
+@stack('scripts')
 @yield('page-js')
 </body>
 </html>

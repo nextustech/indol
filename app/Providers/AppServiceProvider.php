@@ -2,10 +2,12 @@
 
 namespace App\Providers;
 
+use App\Models\BlogPost;
 use App\Models\Option;
+use App\Observers\BlogPostObserver;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        BlogPost::observe(BlogPostObserver::class);
 
         try {
             DB::connection()->getPdo();

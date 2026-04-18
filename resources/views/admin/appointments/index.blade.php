@@ -24,11 +24,11 @@
                 @foreach($appointments as $appointment)
                 <tr>
                     <td>{{ $appointment->id }}</td>
-                    <td>{{ $appointment->patient->name }}</td>
+                    <td>{{ $appointment->patient_name }}</td>
                     <td>{{ $appointment->branch->branchName }}</td>
-                    <td>{{ $appointment->type }}</td>
+                    <td>{{ $appointment->appointmentType->name }}</td>
                     <td>{{ $appointment->appointment_date }}</td>
-                    <td>{{ $appointment->slot->start_time }} - {{ $appointment->slot->end_time }}</td>
+                    <td>{{ $appointment->start_time }} - {{ $appointment->end_time }}</td>
                 </tr>
                 @endforeach
             </tbody>

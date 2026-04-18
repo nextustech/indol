@@ -47,10 +47,10 @@
 					<div class="collapse navbar-collapse main-menu">
                         <div class="nav-menu-wrapper">
                             <ul class="navbar-nav mr-auto" id="menu">
-                                <li><a class="nav-link" href="index-2.html">Home</a></li>
-                                <li class="nav-item"><a class="nav-link" href="#">About Us</a></li>
-                                <li class="nav-item"><a class="nav-link" href="#">Services</a></li>
-                                <li class="nav-item"><a class="nav-link" href="#">Contact Us</a></li>
+                                <li><a class="nav-link" href="{{ url('/') }}">Home</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{{ url('/about-us') }}">About Us</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{{ url('/services') }}">Services</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{{ url('/contact-us') }}">Contact Us</a></li>
                             </ul>
                         </div>
                         <!-- Let’s Start Button Start -->

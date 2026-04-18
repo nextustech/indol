@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 /*
@@ -35,6 +36,10 @@ Route::get('/adm', function () {
 
 Route::get('/', function () {
     return view('front.home');
+});
+
+Route::get('/about-us', function () {
+    return view('front.about');
 });
 // Route::get('/bk', function () {
 //     return view('layouts.backend');
@@ -177,7 +182,19 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::prefix('admin')->name('admin.')->group(function () {
 
+        Route::resource('appointments', App\Http\Controllers\AppointmentController::class);
         Route::resource('sliders', App\Http\Controllers\Admin\SliderController::class);
+        Route::resource('blogs', App\Http\Controllers\Admin\BlogPostController::class);
+        Route::resource('blog.categories', App\Http\Controllers\Admin\BlogCategoryController::class);
+        Route::resource('blog.tags', App\Http\Controllers\Admin\BlogTagController::class);
+        Route::get('blog/comments', [App\Http\Controllers\Admin\BlogPostController::class, 'comments'])->name('blog.comments.index');
+        Route::post('blog/comments/{comment}/approve', [App\Http\Controllers\Admin\BlogPostController::class, 'approveComment'])->name('blog.comments.approve');
+        Route::delete('blog/comments/{comment}', [App\Http\Controllers\Admin\BlogPostController::class, 'deleteComment'])->name('blog.comments.delete');
+
+        Route::resource('contacts', App\Http\Controllers\ContactController::class)->only(['index', 'show', 'destroy']);
+        Route::get('/contacts', [App\Http\Controllers\ContactController::class, 'adminIndex'])->name('IndexContact');
+        Route::patch('contacts/{contact}/mark-read', [App\Http\Controllers\ContactController::class, 'markRead'])->name('contacts.markRead');
+        Route::patch('contacts/{contact}/mark-unread', [App\Http\Controllers\ContactController::class, 'markUnread'])->name('contacts.markUnread');
 
     });
 
@@ -185,3 +202,12 @@ Route::group(['middleware' => 'auth'], function () {
 
 Route::get('book/appointment', [App\Http\Controllers\Front\HomeControlle::class, 'bookAppointment'])->name('bookAppointment');
 Route::get('appointment/confirmation/{id?}', [App\Http\Controllers\Front\HomeControlle::class, 'appointmentConfirmation'])->name('appointment.confirmation');
+
+Route::get('/contact', [App\Http\Controllers\ContactController::class, 'index'])->name('contact');
+Route::post('/contact-submit', [App\Http\Controllers\ContactController::class, 'store'])->name('contact.submit');
+
+Route::get('/blog', [App\Http\Controllers\BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/post/{slug}', [App\Http\Controllers\BlogController::class, 'show'])->name('blog.show');
+Route::get('/blog/category/{slug}', [App\Http\Controllers\BlogController::class, 'category'])->name('blog.category');
+Route::get('/blog/tag/{slug}', [App\Http\Controllers\BlogController::class, 'tag'])->name('blog.tag');
+Route::post('/blog/post/{post}/comment', [App\Http\Controllers\BlogController::class, 'comment'])->name('blog.comment');

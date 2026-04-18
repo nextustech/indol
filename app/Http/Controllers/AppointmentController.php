@@ -13,10 +13,10 @@ class AppointmentController extends Controller
 {
     public function index()
     {
-        $appointments = Appointment::with(['patient', 'branch', 'doctor', 'slot'])->latest()->get();
+        $appointments = Appointment::with(['patient', 'branch'])->latest()->get();
         return view('admin.appointments.index', compact('appointments'));
     }
-    
+
     public function create()
     {
         return view('front.appointment');

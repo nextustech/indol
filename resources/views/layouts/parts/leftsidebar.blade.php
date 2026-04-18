@@ -388,6 +388,12 @@
                                 <p>Sliders Settings</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.IndexContact') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Contact Messages</p>
+                            </a>
+                        </li>
 
                     </ul>
                 </li>
