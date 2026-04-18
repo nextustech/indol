@@ -33,6 +33,7 @@
 	<link rel="stylesheet" href="{{ url('front/css/mousecursor.css') }}">
 	<!-- Main Custom Css -->
 	<link href="{{ url('front/css/custom.css') }}" rel="stylesheet" media="screen">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     @stack('styles')
 </head>
 <body>
@@ -81,10 +82,15 @@
     <script src="{{ url('front/js/function.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 @stack('scripts')
-    <script>
-        axios.defaults.headers.common['X-CSRF-TOKEN'] =
-        document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    </script>
+<script>
+    const token = document.querySelector('meta[name="csrf-token"]');
+
+    if (token) {
+        axios.defaults.headers.common['X-CSRF-TOKEN'] = token.getAttribute('content');
+    } else {
+        console.error('CSRF token not found');
+    }
+</script>
 </body>
 
 </html>

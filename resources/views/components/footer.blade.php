@@ -118,6 +118,7 @@
                             <ul>
                                 <li><a href="#">about us</a></li>
                                 <li><a href="#">services</a></li>
+                                <li><a href="{{ url('login') }}">login</a></li>
                                 <li><a href="#">contact us</a></li>
                             </ul>
                         </div>

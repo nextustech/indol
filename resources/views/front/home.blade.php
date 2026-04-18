@@ -14,7 +14,7 @@
                         <!-- Section Title Start -->
                         <div class="section-title">
                             <h1 class="text-anime-style-2" data-cursor="-opaque"><span>Destination</span> For Relief & Wellness</h1>
-                            <p class="wow fadeInUp" data-wow-delay="0.25s">It is a long established fact that a reader will be distracted the readable content of a page when looking at layout the point of using lorem the Ipsum less normal distribution of letters.</p>
+                            <p class="wow fadeInUp" data-wow-delay="0.25s">Experience the perfect destination for relief and wellness—where expert care meets modern therapy to restore your health and vitality.</p>
                         </div>
                         <!-- Section Title End -->
 
@@ -102,7 +102,7 @@
                     <div class="home-contact-item wow fadeInUp">
                         <!-- Icon Box Start -->
                         <div class="icon-box">
-                            <img src="images/icon-home-contact-us-1.svg" alt="">
+                            <img src="{{ url('front/images/icon-home-contact-us-1.svg')}}" alt="">
                         </div>
                         <!-- Icon Box End -->
 
@@ -121,7 +121,7 @@
                     <div class="home-contact-item wow fadeInUp" data-wow-delay="0.25s">
                         <!-- Icon Box Start -->
                         <div class="icon-box">
-                            <img src="images/icon-home-contact-us-2.svg" alt="">
+                            <img src="{{ url('front/images/icon-home-contact-us-2.svg') }}" alt="">
                         </div>
                         <!-- Icon Box End -->
 
@@ -140,13 +140,13 @@
                     <div class="home-contact-item wow fadeInUp" data-wow-delay="0.5s">
                         <!-- Icon Box Start -->
                         <div class="icon-box">
-                            <img src="images/icon-home-contact-us-3.svg" alt="">
+                            <img src="{{ url('front/images/icon-home-contact-us-3.svg') }}" alt="">
                         </div>
                         <!-- Icon Box End -->
 
                         <!-- Home Contact Content Start -->
                         <div class="home-contact-content">
-                            <h3>free consultant</h3>
+                            <h3>consultant</h3>
                             <p>Our mission is to enhance the quality of life of our patients</p>
                         </div>
                         <!-- Home Contact Content End -->
@@ -173,7 +173,7 @@
                             <!-- Company Experience Box Start -->
                             <div class="company-experience">
                                 <div class="icon-box">
-                                    <img src="images/icon-experience.svg" alt="">
+                                    <img src="{{ url('front/images/icon-experience.svg') }}" alt="">
                                 </div>
                                 <div class="company-experience-content">
                                     <h3><span class="counter">15</span>+</h3>
@@ -192,7 +192,7 @@
                             <div class="section-title">
                             <h3 class="wow fadeInUp">about us</h3>
                             <h2 class="text-anime-style-2" data-cursor="-opaque">We Are The Best For <span>Physiotherapy</span></h2>
-                            <p class="wow fadeInUp" data-wow-delay="0.25s">We understand that injuries and acute pain can happen unexpectedly. Our emergency physiotherapy services are designed to provide prompt and effective care to help you manage pain, prevent further injury, and start your recovery process as quickly as possible.</p>
+                            <p class="wow fadeInUp" data-wow-delay="0.25s">We understand that injuries and acute pain can happen unexpectedly. Our rapid-response physiotherapy services are designed to provide prompt and effective care to help you manage pain, prevent further injury, and start your recovery process as quickly as possible.</p>
                             </div>
                         <!-- Section Title End -->
 
@@ -427,7 +427,7 @@
                         <!-- Service Body Start -->
                         <div class="service-body">
                             <h3>manual therapy</h3>
-                            <p>We understand that injuries and acute pain can  unexpectedly. Our emergency physiotherapy.</p>
+                            <p>Manual therapy helps reduce pain and restore movement using expert hands-on techniques and care.</p>
                         </div>
                         <!-- Service Body End -->
 
@@ -453,7 +453,7 @@
                         <!-- Service Body Start -->
                         <div class="service-body">
                             <h3>chronic pain</h3>
-                            <p>We understand that injuries and acute pain can  unexpectedly. Our emergency physiotherapy.</p>
+                            <p>Chronic pain care focuses on long-term relief, improving mobility, and enhancing your daily life.</p>
                         </div>
                         <!-- Service Body End -->
 
@@ -472,14 +472,14 @@
                     <div class="service-item wow fadeInUp" data-wow-delay="0.4s">
                         <!-- Icon Box Start -->
                         <div class="icon-box">
-                            <img src="images/icon-service-3.svg" alt="">
+                            <img src="{{ url('front/images/icon-service-3.svg') }}" alt="">
                         </div>
                         <!-- Icon Box End -->
 
                         <!-- Service Body Start -->
                         <div class="service-body">
                             <h3>hand therapy</h3>
-                            <p>We understand that injuries and acute pain can  unexpectedly. Our emergency physiotherapy.</p>
+                            <p>Hand therapy improves strength, flexibility, and function after injury, surgery, or nerve issues.</p>
                         </div>
                         <!-- Service Body End -->
 
@@ -505,7 +505,7 @@
                         <!-- Service Body Start -->
                         <div class="service-body">
                             <h3>sports therapy</h3>
-                            <p>We understand that injuries and acute pain can  unexpectedly. Our emergency physiotherapy.</p>
+                            <p>Sports therapy supports injury recovery, boosts performance, and helps prevent future damage.</p>
                         </div>
                         <!-- Service Body End -->
 
@@ -531,7 +531,7 @@
                         <!-- Service Body Start -->
                         <div class="service-body">
                             <h3>cupping therapy</h3>
-                            <p>We understand that injuries and acute pain can  unexpectedly. Our emergency physiotherapy.</p>
+                            <p>Cupping therapy promotes blood flow, relieves muscle tension, and supports natural healing.</p>
                         </div>
                         <!-- Service Body End -->
 
@@ -557,7 +557,7 @@
                         <!-- Service Body Start -->
                         <div class="service-body">
                             <h3>laser therapy</h3>
-                            <p>We understand that injuries and acute pain can  unexpectedly. Our emergency physiotherapy.</p>
+                            <p>Laser therapy uses advanced light technology to reduce pain, inflammation, and speed recovery.</p>
                         </div>
                         <!-- Service Body End -->
 
@@ -583,13 +583,13 @@
                         <!-- Service Body Start -->
                         <div class="service-body">
                             <h3>ready to start your journey to recovery?</h3>
-                            <p>We understand that injuries and acute pain can  unexpectedly. Our emergency physiotherapy.</p>
+                            <p>Take the first step toward a pain-free life with expert care, personalized treatment, and faster recovery.</p>
                         </div>
                         <!-- Service Body End -->
 
                         <!-- Service Footer Start -->
                         <div class="service-cta-btn">
-                            <a href="#" class="btn-default">Book Appointment</a>
+                            <a href="{{ route('bookAppointment') }}" class="btn-default">Book Appointment</a>
                         </div>
                         <!-- Service Footer End -->
                     </div>
@@ -628,15 +628,15 @@
                         <div class="section-title">
                             <h3 class="wow fadeInUp">solution to your plan</h3>
                             <h2 class="text-anime-style-2" data-cursor="-opaque">  <span>We Proudly</span> Give Quality Treatment</h2>
-                            <p class="wow fadeInUp" data-wow-delay="0.25s">We understand that injuries and acute pain can happen unexpectedly. Our emergency physiotherapy services are designed to provide prompt and effective care to help you manage.</p>
+                            <p class="wow fadeInUp" data-wow-delay="0.25s">Our focus is on excellence in every aspect of care. With skilled professionals, modern therapy methods, and personalized attention, we ensure each patient receives the highest standard of treatment for effective and lasting results.</p>
                          </div>
                         <!-- Section Title End -->
 
                          <!-- Solution Plan Body Start -->
                         <div class="solution-plan-body wow fadeInUp"  data-wow-delay="0.5s">
                             <ul>
-                                <li>We understand that injuries.</li>
-                                <li>can happen unexpectedly Our emergency.</li>
+                                <li>Committed to Excellence in Every Treatment We Provide</li>
+                                <li>A Complete Destination for Pain Relief, Recovery & Wellness</li>
                                 <li>We understand that injuries.</li>
                             </ul>
                         </div>
@@ -898,7 +898,7 @@
                     <div class="need-attention-list wow fadeInUp">
                         <!-- Icon Box Start -->
                         <div class="icon-box">
-                            <img src="images/icon-need-attention-3.svg" alt="">
+                            <img src="{{ url('front/images/icon-need-attention-3.svg') }}" alt="">
                         </div>
                         <!-- Icon Box End -->
 
@@ -916,7 +916,7 @@
                     <div class="need-attention-list wow fadeInUp" data-wow-delay="0.25s">
                         <!-- Icon Box Start -->
                         <div class="icon-box">
-                            <img src="images/icon-need-attention-4.svg" alt="">
+                            <img src="{{ url('front/images/icon-need-attention-4.svg') }}" alt="">
                         </div>
                         <!-- Icon Box End -->
 
@@ -934,7 +934,7 @@
                     <div class="need-attention-list wow fadeInUp" data-wow-delay="0.25s">
                         <!-- Icon Box Start -->
                         <div class="icon-box">
-                            <img src="images/icon-need-attention-5.svg" alt="">
+                            <img src="{{ url('front/images/icon-need-attention-5.svg') }}" alt="">
                         </div>
                         <!-- Icon Box End -->
 
@@ -952,7 +952,7 @@
                     <div class="need-attention-list wow fadeInUp" data-wow-delay="0.25s">
                         <!-- Icon Box Start -->
                         <div class="icon-box">
-                            <img src="images/icon-need-attention-6.svg" alt="">
+                            <img src="{{ url('front/images/icon-need-attention-6.svg') }}" alt="">
                         </div>
                         <!-- Icon Box End -->
 
@@ -970,7 +970,7 @@
                     <div class="need-attention-list wow fadeInUp" data-wow-delay="0.5s">
                         <!-- Icon Box Start -->
                         <div class="icon-box">
-                            <img src="images/icon-need-attention-7.svg" alt="">
+                            <img src="{{ url('front/images/icon-need-attention-7.svg') }}" alt="">
                         </div>
                         <!-- Icon Box End -->
 
@@ -988,7 +988,7 @@
                     <div class="need-attention-list wow fadeInUp" data-wow-delay="0.5s">
                         <!-- Icon Box Start -->
                         <div class="icon-box">
-                            <img src="images/icon-need-attention-8.svg" alt="">
+                            <img src="{{ url('front/images/icon-need-attention-8.svg') }}" alt="">
                         </div>
                         <!-- Icon Box End -->
 
@@ -1006,7 +1006,7 @@
                     <div class="need-attention-list wow fadeInUp" data-wow-delay="0.5s">
                         <!-- Icon Box Start -->
                         <div class="icon-box">
-                            <img src="images/icon-need-attention-9.svg" alt="">
+                            <img src="{{ url('front/images/icon-need-attention-9.svg') }}" alt="">
                         </div>
                         <!-- Icon Box End -->
 
@@ -1276,7 +1276,7 @@
                                         <div class="testimonial-body">
                                             <div class="author-image">
                                                 <figure class="image-anime">
-                                                    <img src="images/author-3.jpg" alt="">
+                                                    <img src="{{ url('front/images/author-3.jpg') }}" alt="">
                                                 </figure>
                                             </div>
                                             <div class="author-content">
