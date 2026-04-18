@@ -2,102 +2,162 @@
 
 namespace App\Http\Controllers;
 
-use Carbon\Carbon;
-use Illuminate\Http\Request;
-use App\Models\Patient;
-use App\Models\Slot;
 use App\Models\Appointment;
+use App\Models\Branch;
+use App\Models\AppointmentType;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class AppointmentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $appointments = Appointment::with(['patient', 'branch'])->latest()->get();
-        return view('admin.appointments.index', compact('appointments'));
+        $appointments = Appointment::with(['branch', 'appointmentType'])
+            ->when($request->status, fn ($q, $s) => $q->where('status', $s))
+            ->when($request->branch_id, fn ($q, $b) => $q->where('branch_id', $b))
+            ->when($request->date_from, fn ($q, $d) => $q->where('appointment_date', '>=', $d))
+            ->when($request->date_to, fn ($q, $d) => $q->where('appointment_date', '<=', $d))
+            ->when($request->search, fn ($q, $s) => $q->where(fn ($q) => $q->where('patient_name', 'like', "%{$s}%")->orWhere('phone', 'like', "%{$s}%")->orWhere('email', 'like', "%{$s}%")))
+            ->orderBy('appointment_date', 'desc')
+            ->orderBy('start_time', 'desc')
+            ->paginate(15);
+
+        $branches = Branch::orderBy('branchName')->get();
+        $appointmentTypes = AppointmentType::where('is_active', 1)->orderBy('name')->get();
+
+        return view('admin.appointments.index', compact('appointments', 'branches', 'appointmentTypes'));
     }
 
     public function create()
     {
-        return view('front.appointment');
+        $branches = Branch::orderBy('branchName')->get();
+        $appointmentTypes = AppointmentType::where('is_active', 1)->orderBy('name')->get();
+
+        return view('admin.appointments.create', compact('branches', 'appointmentTypes'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['nullable', 'email', 'max:255'],
-            'phone' => ['required', 'string', 'max:20'],
-            'branch_id' => ['required', 'exists:branches,id'],
-            'date' => ['required', 'date', 'after_or_equal:today'],
-            'slot_id' => ['required', 'exists:slots,id'],
-            'type' => ['required', 'in:home_visit,video_consultation,at_clinic'],
-            'service' => ['required', 'string', 'max:255'],
+            'patient_name' => 'required|string|max:191',
+            'email' => 'nullable|email|max:191',
+            'phone' => 'required|string|max:20',
+            'consultation_topic' => 'nullable|string',
+            'branch_id' => 'required|exists:branches,id',
+            'appointment_type_id' => 'required|exists:appointment_types,id',
+            'appointment_date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required',
+            'end_time' => 'required',
         ]);
 
-        DB::beginTransaction();
+        Appointment::create($validated + ['status' => 'booked']);
 
-        try {
-            $patient = Patient::where('phone', $validated['phone'])
-                ->orWhere('mobile', $validated['phone'])
-                ->first();
+        return redirect()->route('appointments.index')
+            ->with('success', 'Appointment created successfully.');
+    }
 
-            if (! $patient) {
-                $nextPatientId = ((int) Patient::max('patientId')) + 1;
+    public function show(Appointment $appointment)
+    {
+        $appointment->load(['branch', 'appointmentType']);
 
-                $patient = Patient::create([
-                    'patientId' => str_pad((string) $nextPatientId, 4, '0', STR_PAD_LEFT),
-                    'name' => ucwords($validated['name']),
-                    'age' => 0,
-                    'phone' => $validated['phone'],
-                    'mobile' => $validated['phone'],
-                    'address' => 'N.A',
-                    'date' => Carbon::now(),
-                    'ref_by' => 'Appointment',
-                ]);
-            }
+        return view('admin.appointments.show', compact('appointment'));
+    }
 
-            if (! $patient->branches()->where('branches.id', $validated['branch_id'])->exists()) {
-                $patient->branches()->attach($validated['branch_id']);
-            }
+    public function edit(Appointment $appointment)
+    {
+        $branches = Branch::where('status', 1)->orderBy('branchName')->get();
+        $appointmentTypes = AppointmentType::where('is_active', 1)->orderBy('name')->get();
 
-            $slot = Slot::where('id', $validated['slot_id'])
-                ->where('branch_id', $validated['branch_id'])
-                ->where('is_active', true)
-                ->firstOrFail();
+        return view('admin.appointments.edit', compact('appointment', 'branches', 'appointmentTypes'));
+    }
 
-            $count = Appointment::where('appointment_date', $validated['date'])
-                ->where('slot_id', $slot->id)
-                ->count();
+    public function update(Request $request, Appointment $appointment)
+    {
+        $validated = $request->validate([
+            'patient_name' => 'required|string|max:191',
+            'email' => 'nullable|email|max:191',
+            'phone' => 'required|string|max:20',
+            'consultation_topic' => 'nullable|string',
+            'branch_id' => 'required|exists:branches,id',
+            'appointment_type_id' => 'required|exists:appointment_types,id',
+            'appointment_date' => 'required|date',
+            'start_time' => 'required',
+            'end_time' => 'required',
+            'status' => 'required|in:booked,cancelled,completed',
+        ]);
 
-            if ($count >= $slot->max_booking) {
-                return response()->json(['error' => 'Slot full'], 422);
-            }
+        $appointment->update($validated);
 
-            Appointment::create([
-                'full_name' => $validated['name'],
-                'email' => $validated['email'] ?? null,
-                'phone' => $validated['phone'],
-                'patient_id' => $patient->id,
-                'branch_id' => $validated['branch_id'],
-                'doctor_id' => $slot->doctor_id,
-                'slot_id' => $slot->id,
-                'appointment_date' => $validated['date'],
-                'appointment_time' => $slot->start_time,
-                'type' => $validated['type'],
-                'service' => $validated['service']
-            ]);
+        return redirect()->route('appointments.index')
+            ->with('success', 'Appointment updated successfully.');
+    }
 
-            // 🔥 WhatsApp (simple)
-            // app(WhatsAppService::class)->send($patient->phone, "Appointment confirmed");
+    public function destroy(Appointment $appointment)
+    {
+        $appointment->delete();
 
-            DB::commit();
+        return redirect()->route('appointments.index')
+            ->with('success', 'Appointment deleted successfully.');
+    }
 
-            return response()->json(['success' => true], 201);
+    public function updateStatus(Request $request, Appointment $appointment)
+    {
+        $request->validate([
+            'status' => 'required|in:booked,cancelled,completed'
+        ]);
 
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json(['error' => $e->getMessage()], 500);
+        $appointment->update(['status' => $request->status]);
+
+        return back()->with('success', 'Appointment status updated.');
+    }
+
+    public function getAvailableSlots(Request $request)
+    {
+        $request->validate([
+            'branch_id' => 'required|exists:branches,id',
+            'appointment_type_id' => 'required|exists:appointment_types,id',
+            'date' => 'required|date'
+        ]);
+
+        $window = \App\Models\AvailabilityWindow::where('branch_id', $request->branch_id)
+            ->where('appointment_type_id', $request->appointment_type_id)
+            ->where('day_of_week', \Carbon\Carbon::parse($request->date)->dayOfWeek)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$window) {
+            return response()->json(['success' => false, 'message' => 'No availability for this day']);
         }
+
+        $bookedCount = Appointment::where('branch_id', $request->branch_id)
+            ->where('appointment_type_id', $request->appointment_type_id)
+            ->where('appointment_date', $request->date)
+            ->where('status', 'booked')
+            ->count();
+
+        $remaining = $window->capacity - $bookedCount;
+
+        $slots = [];
+        $current = strtotime($window->start_time);
+        $end = strtotime($window->end_time);
+        $duration = $window->duration ?? 30;
+
+        while ($current < $end) {
+            $start = date('H:i:s', $current);
+            $endTime = date('H:i:s', $current + ($duration * 60));
+
+            if ($endTime <= $end) {
+                $slots[] = [
+                    'start_time' => $start,
+                    'end_time' => $endTime,
+                    'remaining' => $remaining > 0 ? $remaining : 0,
+                    'available' => $remaining > 0
+                ];
+            }
+
+            $current += ($duration * 60);
+        }
+
+        return response()->json(['success' => true, 'slots' => $slots, 'remaining' => $remaining]);
     }
 }

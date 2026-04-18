@@ -382,6 +382,42 @@
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
+<li class="nav-item">
+                            <a href="{{ route('admin.appointment-types.index') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Appointment Types</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.branch-appointment-types.index') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Branch Appointment Types</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.availability-windows.index') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Availability Windows</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.holidays.index') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Holidays</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.appointments.index') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Appointments</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.IndexContact') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>Contact Messages</p>
+                            </a>
+                        </li>
                         <li class="nav-item">
                             <a href="{{ route('admin.sliders.index') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>

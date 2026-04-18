@@ -183,6 +183,11 @@ Route::group(['middleware' => 'auth'], function () {
     Route::prefix('admin')->name('admin.')->group(function () {
 
         Route::resource('appointments', App\Http\Controllers\AppointmentController::class);
+        Route::patch('appointments/{appointment}/status', [App\Http\Controllers\AppointmentController::class, 'updateStatus'])->name('appointments.updateStatus');
+        Route::resource('appointment-types', App\Http\Controllers\AppointmentTypeController::class);
+        Route::resource('availability-windows', App\Http\Controllers\AvailabilityWindowController::class);
+        Route::resource('holidays', App\Http\Controllers\HolidayController::class);
+        Route::resource('branch-appointment-types', App\Http\Controllers\Admin\BranchAppointmentTypeController::class);
         Route::resource('sliders', App\Http\Controllers\Admin\SliderController::class);
         Route::resource('blogs', App\Http\Controllers\Admin\BlogPostController::class);
         Route::resource('blog.categories', App\Http\Controllers\Admin\BlogCategoryController::class);

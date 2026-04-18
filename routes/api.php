@@ -23,4 +23,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     Route::get('/slots', [BookingController::class, 'getSlots']);
     Route::post('/book', [BookingController::class, 'bookAppointment']);
     Route::get('/get-types', [BookingController::class, 'getTypes']);
+    Route::get('/admin/slots', [App\Http\Controllers\AppointmentController::class, 'getAvailableSlots']);
    // Route::get('/slots', [BookingController::class, 'getSlots']);
