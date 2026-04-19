@@ -1,4 +1,14 @@
 <!-- Small boxes (Stat box) -->
+@php
+    $year = now()->year;
+    $month = now()->month;
+
+    if ($month >= 4) {
+        $fy = $year . '-' . ($year + 1);
+    } else {
+        $fy = ($year - 1) . '-' . $year;
+    }
+@endphp
 <div class="row">
     <div class="col-lg-3 col-6">
         <!-- small box -->
@@ -50,12 +60,12 @@
             <div class="inner">
                 <h3>{{ $totalDues }}</h3>
 
-                <p>Total Dues</p>
+                <p>Total Dues FY: {{ $fy }}</p>
             </div>
             <div class="icon">
                 <i class="ion ion-pie-graph"></i>
             </div>
-            <a href="{{ route('duesDetails') }}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+            <a href="#" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
         </div>
     </div>
     <!-- ./col -->

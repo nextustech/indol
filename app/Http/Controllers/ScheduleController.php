@@ -10,6 +10,7 @@ use App\Models\Branch;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 
 class ScheduleController extends Controller
@@ -188,24 +189,27 @@ class ScheduleController extends Controller
 
 public function makeAbsent(Request $request, Schedule $schedule)
 {
+    $TOTAL_START = microtime(true);
+    Log::info('--- makeAbsent START ---', ['schedule_id' => $schedule->id]);
+
     DB::transaction(function () use ($schedule) {
 
         // Safety: already absent
         if ($schedule->status == 2) {
+            Log::info('Already absent - exit');
             return;
         }
 
         // 1️⃣ Mark sitting ABSENT
-
         DB::table('schedules')
-        ->where('id', $schedule->id)
-        ->update([
-            'status' => 2,
-            'attendedAt' => null,
-        ]);
+            ->where('id', $schedule->id)
+            ->update([
+                'status' => 2,
+                'attendedAt' => null,
+            ]);
 
-        // 2️⃣ Payment info (SOURCE OF TRUTH)
-        $payment = $schedule->payment; // belongsTo
+        // 2️⃣ Payment info
+        $payment = $schedule->payment;
         $perDay  = (int) $payment->perDaySittings;
         $maxTotal = (int) $payment->duration;
 
@@ -213,65 +217,90 @@ public function makeAbsent(Request $request, Schedule $schedule)
         $baseQuery = Schedule::where('patient_id', $schedule->patient_id)
             ->where('payment_id', $schedule->payment_id);
 
-        // 4️⃣ Count ATTENDED + SCHEDULED (exclude ABSENT)
+        // 4️⃣ Count used sittings
         $usedSittings = (clone $baseQuery)
             ->where('status', '!=', 2)
             ->count();
 
-        // ❗ Cap check (ABSENT does NOT count)
         if ($usedSittings >= $maxTotal) {
+            Log::info('Cap reached - exit');
             return;
         }
 
-        // 5️ Find LAST sitting date (regular + extra)
+        // 5⃣ Last sitting date
         $lastMax = (clone $baseQuery)->max('sittingDate');
         $lastDate = Carbon::parse($lastMax)->startOfDay();
 
-        // Prepare weekend/package rules
-        $service = null;
+        // Weekend rules
         $rules = [];
         if ($payment && $payment->service_type_id) {
-            $service = Branch::find($payment->branch_id);
+            $service = \App\Models\Branch::find($payment->branch_id);
             if ($service && !empty($service->restrict_weekend_sittings)) {
                 $rules = [Carbon::SATURDAY => 1, Carbon::SUNDAY => 0];
             }
         }
 
-        // 6️⃣ Find the next date that has capacity (respecting rules)
+        // 6️⃣ Find next valid date
         $candidate = $lastDate->copy();
+        $loopCount = 0;
+        $extraDate = null; // ✅ FIX
+
         while (true) {
-            $dow = $candidate->dayOfWeek; // 0 (Sun) - 6 (Sat)
-            $allowed = array_key_exists($dow, $rules) ? (int) $rules[$dow] : $perDay;
+            $loopCount++;
+
+            $dow = $candidate->dayOfWeek;
+            $allowed = array_key_exists($dow, $rules) ? (int)$rules[$dow] : $perDay;
 
             $countOnCandidate = (clone $baseQuery)
                 ->whereBetween('sittingDate', [
-                        $candidate->copy()->startOfDay(),
-                        $candidate->copy()->endOfDay()
-                    ])
+                    $candidate->copy()->startOfDay(),
+                    $candidate->copy()->endOfDay()
+                ])
                 ->count();
 
             if ($allowed > 0 && $countOnCandidate < $allowed) {
-                $extraDate = $candidate;
+                $extraDate = $candidate->copy(); // ✅ FIX
                 break;
             }
 
-            // move to next day
             $candidate->addDay();
+
+            if ($loopCount > 50) {
+                Log::warning('Loop exceeded 50 iterations', [
+                    'loopCount' => $loopCount,
+                    'lastDate' => $lastDate,
+                    'perDay' => $perDay
+                ]);
+                break;
+            }
         }
 
-        // 8️⃣ Extra numbering
+        // ❌ Prevent undefined variable crash
+        if (!$extraDate) {
+            Log::error('extraDate not found, aborting');
+            return;
+        }
+
+        // 8️ Extra count
         $extraCount = (clone $baseQuery)
             ->where('extraSitting', 1)
             ->count();
 
-        // 9️⃣ Add ONE extra sitting
+        // 9️⃣ Visit order (FIXED)
         $visitOrder = 1;
+
+        $countOnExtraDate = (clone $baseQuery)
+            ->whereBetween('sittingDate', [
+                $extraDate->copy()->startOfDay(),
+                $extraDate->copy()->endOfDay()
+            ])
+            ->count();
+
         if ($extraDate->isSameDay($lastDate)) {
-            $visitOrder = $countOnCandidate + 1;
-        } else {
-            $visitOrder = 1;
+            $visitOrder = $countOnExtraDate + 1;
         }
 
+        // 🔟 Create extra sitting
         Schedule::create([
             'user_id'      => $schedule->user_id,
             'patient_id'   => $schedule->patient_id,
@@ -280,13 +309,16 @@ public function makeAbsent(Request $request, Schedule $schedule)
             'extraSitting' => 1,
             'sittingDate'  => $extraDate,
             'visit_order'  => $visitOrder,
-            'status'       => 0, // scheduled
+            'status'       => 0,
             'attendedAt'   => null,
         ]);
     });
 
+    Log::info('--- makeAbsent END ---', ['total' => microtime(true)-$TOTAL_START]);
+
     return redirect()->back()->with('success', 'Extra sitting added correctly');
 }
+
 
 
     public function revertAbsent(Request $request, Schedule $schedule)

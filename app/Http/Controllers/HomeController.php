@@ -35,44 +35,151 @@ class HomeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        $user = Auth::user();
-        $branches = loggedUser()->branches;
-        // return $branches;
-        $brachesId = loggedUser()->branches->pluck('id')->toArray();
-        $newPatients = Patient::whereDate('created_at',Carbon::today())->whereHas('branches', function ($q)use($brachesId) {
-            $q->whereIn('branches.id', $brachesId);
-        })->count();
-        $todayCash = Collection::where('mode_id',1)->whereDate('collectionDate',Carbon::today())->whereIn('branch_id', $brachesId)->sum('amount');
-        $todayOnline = Collection::where('mode_id',2)->whereDate('collectionDate',Carbon::today())->whereIn('branch_id', $brachesId)->sum('amount');
-        $totalAmount = Payment::whereIn('branch_id', $brachesId)->sum('amount');
-        $totalCollection = Collection::whereIn('branch_id', $brachesId)->sum('amount');
-        $totalDiscount = Collection::whereIn('branch_id', $brachesId)->sum('discount');
-        $totalDues = $totalAmount - ( $totalCollection + $totalDiscount );
+public function index()
+{
+    $user = Auth::user();
 
-        $todayCashExp = Expense::where('mode_id',1)->whereDate('date',Carbon::today())->whereIn('branch_id', $brachesId)->sum('amount');
-        $todayOnlineExp = Expense::where('mode_id',2)->whereDate('date',Carbon::today())->whereIn('branch_id', $brachesId)->sum('amount');
-
-        $todayRefund = Collection::whereDate('collectionDate',Carbon::today())->whereIn('branch_id', $brachesId)->sum('refund');
-        $todayCashRefund = Collection::where('mode_id',1)->whereDate('created_at',Carbon::today())->whereIn('branch_id', $brachesId)->sum('refund');
-        $netCashToday = $todayCash - ( $todayCashExp + $todayCashRefund);
-              $serviceTypes = ServiceType::with(['collections'=> function($query) use($brachesId) {
-            $query->whereIn('branch_id', $brachesId);
-            $query->whereDate('collectionDate',Carbon::today());
-        }])->get();
-        $paymentModes = Mode::with(['collections'=> function($query) use($brachesId) {
-            $query->whereIn('branch_id', $brachesId);
-            $query->whereDate('collectionDate',Carbon::today());
-        }])->get();
-       // return $serviceTypes;
-        $activePackages = Payment::with('schedules')->whereIn('branch_id', $brachesId)->where('active',1)->get();
-        // return $activePackages;
-        return view('home',compact('branches','newPatients','todayCash','todayOnline','totalDues','todayCashExp','todayOnlineExp','todayRefund','netCashToday','serviceTypes','activePackages','paymentModes'));
- 
-       // return view('home',compact('branches','newPatients','todayCash','todayOnline','totalDues','todayCashExp','todayOnlineExp','todayRefund','netCashToday'));
+    if (!$user) {
+        abort(401);
     }
-  
+
+    $branches = $user->branches ?? collect();
+    $branchIds = $branches->pluck('id');
+
+    if ($branchIds->isEmpty()) {
+        return view('home', compact('branches'));
+    }
+
+    // ✅ Today range
+    $start = now()->startOfDay();
+    $end   = now()->endOfDay();
+
+    // ✅ Patients
+    $newPatients = Patient::whereBetween('created_at', [$start, $end])
+        ->whereHas('branches', fn($q) => $q->whereIn('branches.id', $branchIds))
+        ->count();
+
+    // ✅ Collections (single query)
+    $collections = Collection::whereIn('branch_id', $branchIds)
+        ->whereBetween('collectionDate', [$start, $end])
+        ->selectRaw("
+            SUM(CASE WHEN mode_id = 1 THEN amount ELSE 0 END) as cash,
+            SUM(CASE WHEN mode_id = 2 THEN amount ELSE 0 END) as online,
+            SUM(refund) as refund,
+            SUM(amount) as total,
+            SUM(discount) as discount
+        ")
+        ->first();
+
+    $todayCash   = $collections->cash ?? 0;
+    $todayOnline = $collections->online ?? 0;
+    $todayRefund = $collections->refund ?? 0;
+
+    // ✅ Expenses
+    $expenses = Expense::whereIn('branch_id', $branchIds)
+        ->whereBetween('date', [$start, $end])
+        ->selectRaw("
+            SUM(CASE WHEN mode_id = 1 THEN amount ELSE 0 END) as cash,
+            SUM(CASE WHEN mode_id = 2 THEN amount ELSE 0 END) as online
+        ")
+        ->first();
+
+    $todayCashExp   = $expenses->cash ?? 0;
+    $todayOnlineExp = $expenses->online ?? 0;
+
+    // ✅ Payment Modes (FIXED: removed loop queries)
+    $modeData = Collection::whereIn('branch_id', $branchIds)
+        ->whereBetween('collectionDate', [$start, $end])
+        ->selectRaw('mode_id, SUM(amount) as total, COUNT(*) as count')
+        ->groupBy('mode_id')
+        ->get()
+        ->keyBy('mode_id');
+
+    $paymentModes = Mode::select('id', 'name')->get()
+        ->map(function ($mode) use ($modeData) {
+            $mode->today_total = $modeData[$mode->id]->total ?? 0;
+            $mode->today_count = $modeData[$mode->id]->count ?? 0;
+            return $mode;
+        });
+
+    // ✅ Financial Year
+    $year = now()->year;
+
+    if (now()->month < 4) {
+        $start = Carbon::create($year - 1, 4, 1)->startOfDay();
+        $end   = Carbon::create($year, 3, 31)->endOfDay();
+    } else {
+        $start = Carbon::create($year, 4, 1)->startOfDay();
+        $end   = Carbon::create($year + 1, 3, 31)->endOfDay();
+    }
+
+    // ✅ Totals (2 queries only)
+    $payments = DB::table('payments')
+        ->whereIn('branch_id', $branchIds)
+        ->whereBetween('created_at', [$start, $end])
+        ->selectRaw('SUM(amount) as totalAmount')
+        ->first();
+
+    $collections = DB::table('collections')
+        ->whereIn('branch_id', $branchIds)
+        ->whereBetween('collectionDate', [$start, $end])
+        ->selectRaw('
+            SUM(amount) as totalCollection,
+            SUM(discount) as totalDiscount
+        ')
+        ->first();
+
+    $totalAmount     = $payments->totalAmount ?? 0;
+    $totalCollection = $collections->totalCollection ?? 0;
+    $totalDiscount   = $collections->totalDiscount ?? 0;
+
+    $totalDues = $totalAmount - ($totalCollection + $totalDiscount);
+
+    // ✅ Net Cash
+    $netCashToday = $todayCash - ($todayCashExp + $todayRefund);
+
+    // ✅ Service Types (FIXED: single query instead of loop)
+    $serviceCounts = Collection::whereIn('branch_id', $branchIds)
+        ->whereBetween('collectionDate', [$start, $end])
+        ->selectRaw('service_type_id, COUNT(*) as total')
+        ->groupBy('service_type_id')
+        ->pluck('total', 'service_type_id');
+
+    $serviceTypes = ServiceType::select('id', 'name')
+        ->get()
+        ->map(function ($service) use ($serviceCounts) {
+            $service->today_count = $serviceCounts[$service->id] ?? 0;
+            return $service;
+        });
+
+    // ✅ Active Packages (already good)
+    $activePackages = Payment::with([
+            'branch:id,branchName',
+            'patient:id,name,diagnosis',
+            'schedules:id,payment_id,sittingDate,attendedAt'
+        ])
+        ->whereIn('branch_id', $branchIds)
+        ->where('active', 1)
+        ->latest()
+        ->limit(50)
+        ->get();
+
+    return view('home', compact(
+        'branches',
+        'newPatients',
+        'todayCash',
+        'todayOnline',
+        'totalDues',
+        'todayCashExp',
+        'todayOnlineExp',
+        'todayRefund',
+        'netCashToday',
+        'serviceTypes',
+        'activePackages',
+        'paymentModes'
+    ));
+}
+
 public function discontinued(Request $request)
 {
         $branchIds = loggedUser()->branches->pluck('id')->toArray();
@@ -82,7 +189,7 @@ public function discontinued(Request $request)
             ->join('schedules as s', 's.patient_id', '=', 'p.id')
             ->select('p.id', 'p.name', 'p.mobile', DB::raw('MAX(s.AttendedAt) as last_attended')) // adjust columns
             ->groupBy('p.id', 'p.name', 'p.mobile');
-            
+
         $dateFilter = $request->dateFilter;
         if(isset($request->branchFilter) && ($request->branchFilter != null)){
             $query->where('s.branch_id', $request->branchFilter);
@@ -111,7 +218,7 @@ public function discontinued(Request $request)
         return view('reports.discontinuedPatients',compact('patients','branches'));
 
 }
-  
+
     public function crProfit(){
         return view('admin.cr_profit');
     }
@@ -253,7 +360,7 @@ public function discontinued(Request $request)
 
         return view('reports.todayBranchDetails',compact('collections','expenses','todayCashCollections','todayOnlineCollections','todayCashRefund','todayOnlineRefund','todayCashExps','todayOnlineExps','serviceTypes','paymentModes','expenseModes','refunds','dateTm','branch'));
     }
-    
+
   	public function serviceDetail($id)
     {
         $service = ServiceType::where('id',$id)->first();
@@ -312,7 +419,7 @@ public function discontinued(Request $request)
 
         return view('reports.customDailyReport',compact('branches','branchFilter'));
     }
-  
+
       public function rangeDailyReport(Request $request)
     {
         //return Carbon::today();
