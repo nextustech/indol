@@ -201,6 +201,11 @@ Route::group(['middleware' => 'auth'], function () {
         Route::patch('contacts/{contact}/mark-read', [App\Http\Controllers\ContactController::class, 'markRead'])->name('contacts.markRead');
         Route::patch('contacts/{contact}/mark-unread', [App\Http\Controllers\ContactController::class, 'markUnread'])->name('contacts.markUnread');
 
+        Route::resource('zoom-meetings', App\Http\Controllers\Admin\ZoomMeetingController::class);
+        Route::post('zoom-meetings/{zoomMeeting}/start', [App\Http\Controllers\Admin\ZoomMeetingController::class, 'startMeeting'])->name('zoom-meetings.start');
+        Route::post('zoom-meetings/{zoomMeeting}/end', [App\Http\Controllers\Admin\ZoomMeetingController::class, 'endMeeting'])->name('zoom-meetings.end');
+        Route::post('zoom-meetings/{zoomMeeting}/sync', [App\Http\Controllers\Admin\ZoomMeetingController::class, 'syncMeeting'])->name('zoom-meetings.sync');
+
     });
 
 });
