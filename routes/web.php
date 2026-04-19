@@ -41,6 +41,10 @@ Route::get('/', function () {
 Route::get('/about-us', function () {
     return view('front.about');
 });
+
+Route::get('/our-services', function () {
+    return view('front.service');
+});
 // Route::get('/bk', function () {
 //     return view('layouts.backend');
 // });

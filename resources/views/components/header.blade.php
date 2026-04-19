@@ -49,8 +49,8 @@
                             <ul class="navbar-nav mr-auto" id="menu">
                                 <li><a class="nav-link" href="{{ url('/') }}">Home</a></li>
                                 <li class="nav-item"><a class="nav-link" href="{{ url('/about-us') }}">About Us</a></li>
-                                <li class="nav-item"><a class="nav-link" href="{{ url('/services') }}">Services</a></li>
-                                <li class="nav-item"><a class="nav-link" href="{{ url('/contact-us') }}">Contact Us</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{{ url('/our-services') }}">Services</a></li>
+                                <li class="nav-item"><a class="nav-link" href="{{ url('/contact') }}">Contact Us</a></li>
                             </ul>
                         </div>
                         <!-- Let’s Start Button Start -->
