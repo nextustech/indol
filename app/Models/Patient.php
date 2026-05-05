@@ -9,7 +9,7 @@ class Patient extends Model
 {
     use HasFactory;
    // protected $guarded = [];
-    protected $fillable =['name','ref_by','patientId','age','gender','phone','mobile','diagnosis','address','image','date','otherNotes','status'];
+    protected $fillable =['created_by','name','ref_by','patientId','age','gender','phone','mobile','diagnosis','address','image','date','otherNotes','status'];
 
     public function branches()
     {

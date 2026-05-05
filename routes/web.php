@@ -16,23 +16,9 @@ use Illuminate\Support\Facades\Route;
 */
 use UniSharp\LaravelFilemanager\Lfm;
 
-Route::group([
-    'prefix' => 'laravel-filemanager',
-    'middleware' => ['web'],
-], function () {
-    Lfm::routes();
-});
-Route::get('/adm', function () {
-    $user = new User;
-    $user->name = 'shobhit';
-    $user->email = 'admmin@gmail.com';
-    $user->username = 'shobhit';
-    $user->status = 1;
-    $user->password = Hash::make('shob@7277');
-    $user->save();
 
-    return view('front.home');
-});
+
+
 
 Route::get('/', function () {
     return view('front.home');
@@ -45,9 +31,7 @@ Route::get('/about-us', function () {
 Route::get('/our-services', function () {
     return view('front.service');
 });
-// Route::get('/bk', function () {
-//     return view('layouts.backend');
-// });
+
 
 Route::get('/api/branches', function () {
     return \App\Models\Branch::select('id', 'branchName as name')->get();

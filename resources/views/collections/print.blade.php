@@ -49,12 +49,19 @@
                                         </div>
                                         <div class="row text-right">
                                             <div class="col-sm-4">
-                                                <span><img src="{{ url($collection->branch->logo) }}" alt=""></span><br><br>
+                                                <span>
+                                                  @if(isset($collection) && isset($collection->branch) && !empty($collection->branch->logo))
+                                                      <img src="{{ (string) url($collection?->branch?->logo ?? '') }}" alt="Logo">
+                                                  @else
+                                                  
+                                                  @endif
+                                              
+                                              </span><br><br>
 
                                             </div>
                                             <div class="col-sm-5 text-center">
-
-                                                <h3>{{ $collection->branch->branchName }}</h3>
+												<h3> Dr.Indolia Physiotherapy Clinic </h3>
+                                                <h5>{{ $collection->branch->branchName }}</h5>
                                                 <strong>{{ $collection->branch->slogan }}</strong>
                                             </div>
                                             <div class="col-sm-3 text-right">
@@ -172,12 +179,19 @@
                                         </div>
                                         <div class="row text-right">
                                             <div class="col-sm-4">
-                                                <span><img src="{{ url($collection->branch->logo) }}" alt=""></span><br><br>
+                                                  <span>
+                                                  @if(isset($collection) && isset($collection->branch) && !empty($collection->branch->logo))
+                                                      <img src="{{ (string) url($collection?->branch?->logo ?? '') }}" alt="Logo">
+                                                  @else
+                                                      
+                                                  @endif
+                                              
+                                              </span><br><br>
 
                                             </div>
                                             <div class="col-sm-5 text-center">
-
-                                                <h3>{{ $collection->branch->branchName }}</h3>
+													<h3> Dr.Indolia Physiotherapy Clinic </h3>
+                                                <h5>{{ $collection->branch->branchName }}</h5>
                                                 <strong>{{ $collection->branch->slogan }}</strong>
                                             </div>
                                             <div class="col-sm-3 text-right">
@@ -280,12 +294,20 @@
                                         </div>
                                         <div class="row text-right">
                                             <div class="col-sm-4">
-                                                <span><img src="{{ url($collection->branch->logo) }}" alt=""></span><br><br>
+                                                                                                <span>
+                                                  @if(isset($collection) && isset($collection->branch) && !empty($collection->branch->logo))
+                                                      <img src="{{ (string) url($collection?->branch?->logo ?? '') }}" alt="Logo">
+                                                  @else
+                                                     
+                                                  @endif
+                                              
+                                              </span><br><br>
 
                                             </div>
                                             <div class="col-sm-5 text-center">
 
-                                                <h3>{{ $collection->branch->branchName }}</h3>
+													<h3> Dr.Indolia Physiotherapy Clinic </h3>
+                                                <h5>{{ $collection->branch->branchName }}</h5>
                                                 <strong>{{ $collection->branch->slogan }}</strong>
                                             </div>
                                             <div class="col-sm-3 text-right">

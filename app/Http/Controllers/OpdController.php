@@ -165,7 +165,9 @@ class OpdController extends Controller
         $days = $request['days'];
         $userId = Auth::id();
         $type = $request['service_type_id'];
-        $patient = Patient::create($request->except('branch_id'));
+        $patientData = $request->except('branch_id');
+        $patientData['created_by'] = Auth::id();
+        $patient = Patient::create($patientData);
         $branch_id = $request['branch_id'];
         $patient->branches()->attach($branch_id);
 

@@ -1,27 +1,29 @@
 @extends('layouts.backend')
 
 @section('content')
-    <!-- Content Wrapper. Contains page content -->
-    <div class="content-wrapper">
+<div class="content-wrapper">
 
-        <!-- Main content -->
-        <div class="content mt-2">
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12">
+    <div class="content mt-2">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-lg-12">
 
-                        <div class="card card-primary card-outline">
-                            <div class="card-header">
-                                <h5 class="m-0">Due's Details</h5>
-                            </div>
+                    <div class="card card-primary card-outline">
+                        <div class="card-header">
+                            <h5 class="m-0">Due's Details</h5>
+                        </div>
 
-                            <div class="card-body">
-                                @include('errors.list')
-                                @if (Session::has('message'))
-                                    <div class="alert alert-success text-center">{{ session('message') }}</div>
-                                @endif
-                                <table class="table table-sm">
-                                    <thead>
+                        <div class="card-body">
+                            @include('errors.list')
+
+                            @if(Session::has('message'))
+                                <div class="alert alert-success text-center">
+                                    {{ session('message') }}
+                                </div>
+                            @endif
+
+                            <table class="table table-sm">
+                                <thead>
                                     <tr>
                                         <th>Reg Date</th>
                                         <th>Branch</th>
@@ -32,60 +34,73 @@
                                         <th>Discount</th>
                                         <th>Total Due</th>
                                     </tr>
-                                    </thead>
-                                    <tbody>
-                                    @if(count($patients)>0)
-                                            <?php $i = 1; ?>
-                                        @foreach( $patients as $patient )
-                                            @if( $patient->payments->sum('amount') >  ( $patient->collections->sum('amount') + $patient->collections->sum('discount')))
-                                            <tr>
-                                                    <?php
-                                                    $source = $patient->date;
-                                                    $regDate = new DateTime($source);
-                                                    ?>
+                                </thead>
 
-                                                <td>{{ $regDate->format(" j M, y") }}</td>
-                                                <td>
-                                                    @foreach( $patient->branches as $branch )
-                                                        {{ $branch->branchName }}
-                                                    @endforeach
-                                                </td>
-                                                <td><a href="{{ route('patients.show',$patient) }}" data-toggle="tooltip" data-placement="top" title="{{ $patient->diagnosis }}">
-                                                        {{ ucfirst($patient->name) }} </a> ( {{ $patient->age }} @if($patient->gender == 1) M  @else  F @endif )
-                                                </td>
-                                                <td> {{ $patient->mobile }} </td>
-                                                <td>{{ $patient->payments->sum('amount') }}</td>
+                                <tbody>
+                                @forelse($patients as $patient)
 
-                                                <td>
-                                                    {{  $patient->collections->sum('amount') }}
-                                                </td>
-                                                <td>
-                                                    {{  $patient->collections->sum('discount') }}
-                                                </td>
-                                                <td>{{ $patient->payments->sum('amount') -  ( $patient->collections->sum('amount') + $patient->collections->sum('discount')) }}</td>
-                                            </tr>
+                                    @php
+                                        $payable = $patient->total_payable ?? 0;
+                                        $collection = $patient->total_collection ?? 0;
+                                        $discount = $patient->total_discount ?? 0;
+                                        $due = $payable - ($collection + $discount);
+                                    @endphp
+								@if($due >= 1)
+                                    <tr>
+                                        <td>
+                                            {{ $patient->date ? \Carbon\Carbon::parse($patient->date)->format('j M, y') : '-' }}
+                                        </td>
 
+                                        <td>
+                                            @if($patient->branches && count($patient->branches))
+                                                @foreach($patient->branches as $branch)
+                                                    {{ $branch->branchName }}
+                                                @endforeach
+                                            @else
+                                                -
                                             @endif
+                                        </td>
 
-                                        @endforeach
-                                    @endif
-                                    </tbody>
-                                </table>
+                                        <td>
+                                            <a href="{{ route('patients.show', $patient) }}">
+                                                {{ ucfirst($patient->name) }}
+                                            </a>
+                                        </td>
 
+                                        <td>{{ $patient->mobile ?? '-' }}</td>
 
+                                        <td>{{ $payable }}</td>
+                                        <td>{{ $collection }}</td>
+                                        <td>{{ $discount }}</td>
+
+                                        <td>
+                                            <strong @if($due > 0) style="color:red" @endif>
+                                                {{ $due }}
+                                            </strong>
+                                        </td>
+                                    </tr>
+								@endif
+                                @empty
+                                    <tr>
+                                        <td colspan="8" class="text-center">
+                                            No records found
+                                        </td>
+                                    </tr>
+                                @endforelse
+                                </tbody>
+                            </table>
+
+                            <div class="mt-3">
+                                {{ $patients->links() }}
                             </div>
-                            <!-- /.card-body -->
 
                         </div>
                     </div>
-                    <!-- /.col-md-6 -->
+
                 </div>
-                <!-- /.row -->
-            </div><!-- /.container-fluid -->
+            </div>
         </div>
-        <!-- /.content -->
     </div>
-    <!-- /.content-wrapper -->
 
+</div>
 @endsection
-

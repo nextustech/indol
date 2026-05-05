@@ -50,36 +50,36 @@
 
 
     <!-- Jquery Library File -->
-    <script src="{{ url('front/js/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ url('front/js/jquery-3.7.1.min.js') }}" defer></script>
     <!-- Bootstrap js file -->
-    <script src="{{ url('front/js/bootstrap.min.js') }}"></script>
+    <script src="{{ url('front/js/bootstrap.min.js') }}" defer></script>
     <!-- Validator js file -->
-    <script src="{{ url('front/js/validator.min.js') }}"></script>
+    <script src="{{ url('front/js/validator.min.js') }}" defer></script>
     <!-- SlickNav js file -->
-    <script src="{{ url('front/js/jquery.slicknav.js') }}"></script>
+    <script src="{{ url('front/js/jquery.slicknav.js') }}" defer></script>
     <!-- Swiper js file -->
-    <script src="{{ url('front/js/swiper-bundle.min.js') }}"></script>
+    <script src="{{ url('front/js/swiper-bundle.min.js') }}" defer></script>
     <!-- Counter js file -->
-    <script src="{{ url('front/js/jquery.waypoints.min.js') }}"></script>
-    <script src="{{ url('front/js/jquery.counterup.min.js') }}"></script>
+    <script src="{{ url('front/js/jquery.waypoints.min.js') }}" defer></script>
+    <script src="{{ url('front/js/jquery.counterup.min.js') }}" defer></script>
     <!-- Magnific js file -->
-    <script src="{{ url('front/js/jquery.magnific-popup.min.js') }}"></script>
+    <script src="{{ url('front/js/jquery.magnific-popup.min.js') }}" defer></script>
     <!-- SmoothScroll -->
-    <script src="{{ url('front/js/SmoothScroll.js') }}"></script>
+    <script src="{{ url('front/js/SmoothScroll.js') }}" defer></script>
     <!-- Parallax js -->
-    <script src="{{ url('front/js/parallaxie.js') }}"></script>
+    <script src="{{ url('front/js/parallaxie.js') }}" defer></script>
     <!-- MagicCursor js file -->
-    <script src="{{ url('front/js/gsap.min.js') }}"></script>
-    <script src="{{ url('front/js/magiccursor.js') }}"></script>
+    <script src="{{ url('front/js/gsap.min.js') }}" defer></script>
+    <script src="{{ url('front/js/magiccursor.js') }}" defer></script>
     <!-- Text Effect js file -->
-    <script src="{{ url('front/js/SplitText.js') }}"></script>
-    <script src="{{ url('front/js/ScrollTrigger.min.js') }}"></script>
+    <script src="{{ url('front/js/SplitText.js') }}" defer></script>
+    <script src="{{ url('front/js/ScrollTrigger.min.js') }}" defer></script>
     <!-- YTPlayer js File -->
-    <script src="{{ url('front/js/jquery.mb.YTPlayer.min.js') }}"></script>
+    <script src="{{ url('front/js/jquery.mb.YTPlayer.min.js') }}" defer></script>
     <!-- Wow js file -->
-    <script src="{{ url('front/js/wow.js') }}"></script>
+    <script src="{{ url('front/js/wow.js') }}" defer></script>
     <!-- Main Custom js file -->
-    <script src="{{ url('front/js/function.js') }}"></script>
+    <script src="{{ url('front/js/function.js') }}" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 @stack('scripts')
 <script>

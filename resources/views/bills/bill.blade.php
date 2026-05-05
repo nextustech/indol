@@ -68,7 +68,8 @@
 
                                     </div>
                                     <div class="col-sm-5 text-center">
-                                        <h3>{{ $invoice->branch->branchName }}</h3>
+                                      	<h3>Dr Indolia Physiotherapy Clinic</h3>
+                                        <h5>{{ $invoice->branch->branchName }}</h5>
                                       @if($invoice->branch->id != 3)
                                         <strong>An ISO 9001:2015 Certified Clinic</strong><br>
                                       @endif
@@ -83,7 +84,7 @@
                                     <div class="row">
                                         <div class="col-sm-6">
                                             <span>Inovice No.</span><br>
-                                            <strong>#INV-WNR-{{ $date->format('my').'/'.$invoice->invoiceNo }}</strong>
+                                            <strong>#INV-{{ $date->format('my').'/'.$invoice->invoiceNo }}</strong>
                                         </div>
                                         <div class="col-sm-6 text-right">
                                             <span>Invoice Date</span><br>
@@ -94,7 +95,7 @@
 
                                 <div class="row pt-2">
                                     <div class="col-lg-6 col-sm-6">
-                                        <p class="h4">{{ $invoice->branch->branchName }}</p>
+                                        <p class="h4">Dr Indolia Physiotherapy Clinic</p>
                                         <address>
                                             {{ $invoice->branch->address }}<br>
                                         </address>

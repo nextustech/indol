@@ -145,12 +145,10 @@ public function index()
         ->groupBy('service_type_id')
         ->pluck('total', 'service_type_id');
 
-    $serviceTypes = ServiceType::select('id', 'name')
-        ->get()
-        ->map(function ($service) use ($serviceCounts) {
-            $service->today_count = $serviceCounts[$service->id] ?? 0;
-            return $service;
-        });
+      $serviceTypes = ServiceType::with(['collections'=> function($query) use($branchIds) {
+            $query->whereIn('branch_id', $branchIds);
+            $query->whereDate('collectionDate',Carbon::today());
+        }])->get();
 
     // ✅ Active Packages (already good)
     $activePackages = Payment::with([
@@ -246,8 +244,15 @@ public function discontinued(Request $request)
         $start =Carbon::createFromFormat('Y-m-d H',$from.' 00');
         $upto = date("Y-m-d", strtotime($upto) );
         $to =Carbon::createFromFormat('Y-m-d H',$upto.' 23');
+        $user = loggedUser();
 
-        $patients = Patient::where('status',null)->whereBetween('date', [$start, $to])->orderBy('date', 'asc')->get();
+        $patients = Patient::where('status',null)->whereBetween('date', [$start, $to])->orderBy('date', 'asc');
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $patients = $patients->where('created_by', $user->id);
+        }
+
+        $patients = $patients->get();
 
         return view('super.hidePatients',compact('patients'));
     }
@@ -273,10 +278,20 @@ public function discontinued(Request $request)
     public function duesDetails()
     {
         $branchesId = loggedUser()->branches->pluck('id')->toArray();
-        $patients =  Patient::whereHas('branches', function ($q)use($branchesId) {
-            $q->whereIn('branches.id', $branchesId);
-        })->get();
-        return view('reports.duesDetails',compact('patients'));
+        $user = loggedUser();
+
+        $patients = Patient::with(['branches:id,branchName'])
+            ->withSum('payments as total_payable', 'amount')
+            ->withSum('collections as total_collection', 'amount')
+            ->withSum('collections as total_discount', 'discount')
+            ->havingRaw('(COALESCE(total_payable,0) - (COALESCE(total_collection,0) + COALESCE(total_discount,0))) >= 1');
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $patients = $patients->where('created_by', $user->id);
+        }
+
+        $patients = $patients->paginate(120);
+        return view('reports.duesDetails', compact('patients'));
     }
     public function cashToday()
     {

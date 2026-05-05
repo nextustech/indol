@@ -9,8 +9,6 @@
                     <h1 class="text-anime-style-2" data-cursor="-opaque">About Us</h1>
                     <nav class="wow fadeInUp">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{{ url('/') }}">home</a></li>
-                            <li class="breadcrumb-item"><a href="{{ url('/about-us') }}">About Us</a></li>
                         </ol>
                     </nav>
                 </div>

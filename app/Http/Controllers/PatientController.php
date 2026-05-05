@@ -360,7 +360,12 @@ public function searchP(Request $request)
     }
 
     public function hiddenPatients(){
-        $patients = Patient::where('status',1)->latest()->paginate(10);
+        $user = loggedUser();
+        $patients = Patient::where('status',1);
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $patients = $patients->where('created_by', $user->id);
+        }
+        $patients = $patients->latest()->paginate(10);
         return view('patients.index',compact('patients'));
     }
 
@@ -368,27 +373,25 @@ public function searchP(Request $request)
         return view('patients.searchPatientByReg');
     }
 
-    Public function searchPatientByRegDate(Request $request){
+public function searchPatientByRegDate(Request $request){
         $from = $request['from'];
         $upto = $request['upto'];
         $from = date("Y-m-d", strtotime($from) );
         $start =Carbon::createFromFormat('Y-m-d H',$from.' 00');
         $upto = date("Y-m-d", strtotime($upto) );
         $to =Carbon::createFromFormat('Y-m-d H',$upto.' 23');
-      	$brachesId = loggedUser()->branches->pluck('id')->toArray();
-       //$user = Auth::user();
-//        if(Auth::user()->role == 1 && Auth::user()->super == Null){
-//            $patients = Patient::where('branch_id',$user->branch_id )->whereBetween('date', [$start, $to])->orderBy('date', 'asc')->get();
-//        }elseif(Auth::user()->role ==2 && Auth::user()->super == Null ){
-//            $patients = Patient::where('branch_id',$user->branch_id )->whereBetween('date', [$start, $to])->orderBy('date', 'asc')->get();
-//        }elseif( Auth::user()->super == 1 ){
-//            $patients = Patient::whereBetween('date', [$start, $to])->orderBy('date', 'asc')->get();
-//
-//        }
-       // $patients = Patient::whereBetween('date', [$start, $to])->orderBy('date', 'asc')->get();
+        $brachesId = loggedUser()->branches->pluck('id')->toArray();
+        $user = loggedUser();
+
         $patients = Patient::whereBetween('date', [$start, $to])->whereHas('branches', function ($q)use($brachesId) {
             $q->whereIn('branches.id', $brachesId);
-        })->get();
+        });
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $patients = $patients->where('created_by', $user->id);
+        }
+
+        $patients = $patients->get();
         return view('patients.searchPatientByRegDate',compact('patients'));
     }
 
