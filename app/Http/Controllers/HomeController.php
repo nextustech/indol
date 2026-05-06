@@ -9,9 +9,7 @@ use App\Models\Mode;
 use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\ServiceType;
-use App\Models\Schedule;
 use Carbon\Carbon;
-use http\Client\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,162 +24,217 @@ class HomeController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('permission:view-TodaysBranchDetails', ['only'=>['todayBranchDetails']]);
-        $this->middleware('permission:rangeDailyReport', ['only'=>['rangeDailyReport']]);
+        $this->middleware('permission:view-TodaysBranchDetails', ['only' => ['todayBranchDetails']]);
+        $this->middleware('permission:rangeDailyReport', ['only' => ['rangeDailyReport']]);
 
     }
+
     /**
      * Show the application dashboard.
      *
      * @return \Illuminate\Http\Response
      */
-public function index()
-{
-    $user = Auth::user();
+    public function index()
+    {
+        $user = Auth::user();
 
-    if (!$user) {
-        abort(401);
-    }
+        if (! $user) {
+            abort(401);
+        }
 
-    $branches = $user->branches ?? collect();
-    $branchIds = $branches->pluck('id');
+        $branches = $user->branches ?? collect();
+        $branchIds = $branches->pluck('id');
+        $isHomePhysio = $user->roles->pluck('name')->first() === 'HomePhysiotherapist';
 
-    if ($branchIds->isEmpty()) {
-        return view('home', compact('branches'));
-    }
+        if ($branchIds->isEmpty()) {
+            return view('home', compact('branches'));
+        }
 
-    // ✅ Today range
-    $start = now()->startOfDay();
-    $end   = now()->endOfDay();
+        // ✅ Today range
+        $start = now()->startOfDay();
+        $end = now()->endOfDay();
 
-    // ✅ Patients
-    $newPatients = Patient::whereBetween('created_at', [$start, $end])
-        ->whereHas('branches', fn($q) => $q->whereIn('branches.id', $branchIds))
-        ->count();
+        // ✅ Patients
+        $newPatientsQuery = Patient::whereBetween('created_at', [$start, $end])
+            ->whereHas('branches', fn ($q) => $q->whereIn('branches.id', $branchIds));
 
-    // ✅ Collections (single query)
-    $collections = Collection::whereIn('branch_id', $branchIds)
-        ->whereBetween('collectionDate', [$start, $end])
-        ->selectRaw("
-            SUM(CASE WHEN mode_id = 1 THEN amount ELSE 0 END) as cash,
-            SUM(CASE WHEN mode_id = 2 THEN amount ELSE 0 END) as online,
-            SUM(refund) as refund,
-            SUM(amount) as total,
-            SUM(discount) as discount
-        ")
-        ->first();
+        if ($isHomePhysio) {
+            $newPatientsQuery->where('created_by', $user->id);
+        }
 
-    $todayCash   = $collections->cash ?? 0;
-    $todayOnline = $collections->online ?? 0;
-    $todayRefund = $collections->refund ?? 0;
+        $newPatients = $newPatientsQuery->count();
 
-    // ✅ Expenses
-    $expenses = Expense::whereIn('branch_id', $branchIds)
-        ->whereBetween('date', [$start, $end])
-        ->selectRaw("
-            SUM(CASE WHEN mode_id = 1 THEN amount ELSE 0 END) as cash,
-            SUM(CASE WHEN mode_id = 2 THEN amount ELSE 0 END) as online
-        ")
-        ->first();
+        // ✅ Collections (single query)
+        $collectionsQuery = Collection::whereIn('branch_id', $branchIds)
+            ->whereBetween('collectionDate', [$start, $end]);
 
-    $todayCashExp   = $expenses->cash ?? 0;
-    $todayOnlineExp = $expenses->online ?? 0;
+        if ($isHomePhysio) {
+            $collectionsQuery->where('user_id', $user->id);
+        }
 
-    // ✅ Payment Modes (FIXED: removed loop queries)
-    $modeData = Collection::whereIn('branch_id', $branchIds)
-        ->whereBetween('collectionDate', [$start, $end])
-        ->selectRaw('mode_id, SUM(amount) as total, COUNT(*) as count')
-        ->groupBy('mode_id')
-        ->get()
-        ->keyBy('mode_id');
+        $collections = $collectionsQuery->selectRaw('
+        SUM(CASE WHEN mode_id = 1 THEN amount ELSE 0 END) as cash,
+        SUM(CASE WHEN mode_id = 2 THEN amount ELSE 0 END) as online,
+        SUM(refund) as refund,
+        SUM(amount) as total,
+        SUM(discount) as discount
+    ')->first();
 
-    $paymentModes = Mode::select('id', 'name')->get()
-        ->map(function ($mode) use ($modeData) {
-            $mode->today_total = $modeData[$mode->id]->total ?? 0;
-            $mode->today_count = $modeData[$mode->id]->count ?? 0;
-            return $mode;
-        });
+        $todayCash = $collections->cash ?? 0;
+        $todayOnline = $collections->online ?? 0;
+        $todayRefund = $collections->refund ?? 0;
 
-    // ✅ Financial Year
-    $year = now()->year;
+        // ✅ Expenses
+        $expensesQuery = Expense::whereIn('branch_id', $branchIds)
+            ->whereBetween('date', [$start, $end]);
 
-    if (now()->month < 4) {
-        $start = Carbon::create($year - 1, 4, 1)->startOfDay();
-        $end   = Carbon::create($year, 3, 31)->endOfDay();
-    } else {
-        $start = Carbon::create($year, 4, 1)->startOfDay();
-        $end   = Carbon::create($year + 1, 3, 31)->endOfDay();
-    }
+        if ($isHomePhysio) {
+            $expensesQuery->where('user_id', $user->id);
+        }
 
-    // ✅ Totals (2 queries only)
-    $payments = DB::table('payments')
-        ->whereIn('branch_id', $branchIds)
-        ->whereBetween('created_at', [$start, $end])
-        ->selectRaw('SUM(amount) as totalAmount')
-        ->first();
+        $expenses = $expensesQuery->selectRaw('
+        SUM(CASE WHEN mode_id = 1 THEN amount ELSE 0 END) as cash,
+        SUM(CASE WHEN mode_id = 2 THEN amount ELSE 0 END) as online
+    ')->first();
 
-    $collections = DB::table('collections')
-        ->whereIn('branch_id', $branchIds)
-        ->whereBetween('collectionDate', [$start, $end])
-        ->selectRaw('
-            SUM(amount) as totalCollection,
-            SUM(discount) as totalDiscount
-        ')
-        ->first();
+        $todayCashExp = $expenses->cash ?? 0;
+        $todayOnlineExp = $expenses->online ?? 0;
 
-    $totalAmount     = $payments->totalAmount ?? 0;
-    $totalCollection = $collections->totalCollection ?? 0;
-    $totalDiscount   = $collections->totalDiscount ?? 0;
+        // ✅ Payment Modes
+        $modeDataQuery = Collection::whereIn('branch_id', $branchIds)
+            ->whereBetween('collectionDate', [$start, $end]);
 
-    $totalDues = $totalAmount - ($totalCollection + $totalDiscount);
+        if ($isHomePhysio) {
+            $modeDataQuery->where('user_id', $user->id);
+        }
 
-    // ✅ Net Cash
-    $netCashToday = $todayCash - ($todayCashExp + $todayRefund);
+        $modeData = $modeDataQuery->selectRaw('mode_id, SUM(amount) as total, COUNT(*) as count')
+            ->groupBy('mode_id')
+            ->get()
+            ->keyBy('mode_id');
 
-    // ✅ Service Types (FIXED: single query instead of loop)
-    $serviceCounts = Collection::whereIn('branch_id', $branchIds)
-        ->whereBetween('collectionDate', [$start, $end])
-        ->selectRaw('service_type_id, COUNT(*) as total')
-        ->groupBy('service_type_id')
-        ->pluck('total', 'service_type_id');
+        $paymentModes = Mode::select('id', 'name')->get()
+            ->map(function ($mode) use ($modeData) {
+                $mode->today_total = $modeData[$mode->id]->total ?? 0;
+                $mode->today_count = $modeData[$mode->id]->count ?? 0;
 
-      $serviceTypes = ServiceType::with(['collections'=> function($query) use($branchIds) {
+                return $mode;
+            });
+
+        // ✅ Financial Year
+        $year = now()->year;
+
+        if (now()->month < 4) {
+            $start = Carbon::create($year - 1, 4, 1)->startOfDay();
+            $end = Carbon::create($year, 3, 31)->endOfDay();
+        } else {
+            $start = Carbon::create($year, 4, 1)->startOfDay();
+            $end = Carbon::create($year + 1, 3, 31)->endOfDay();
+        }
+
+        // ✅ Totals (2 queries only)
+        $paymentsQuery = DB::table('payments')
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('created_at', [$start, $end]);
+
+        $collectionsQuery = DB::table('collections')
+            ->whereIn('branch_id', $branchIds)
+            ->whereBetween('collectionDate', [$start, $end]);
+
+        if ($isHomePhysio) {
+            $paymentsQuery->where('user_id', $user->id);
+            $collectionsQuery->where('user_id', $user->id);
+        }
+
+        $payments = $paymentsQuery->selectRaw('SUM(amount) as totalAmount')->first();
+
+        $collections = $collectionsQuery->selectRaw('
+        SUM(amount) as totalCollection,
+        SUM(discount) as totalDiscount
+    ')->first();
+
+        $totalAmount = $payments->totalAmount ?? 0;
+        $totalCollection = $collections->totalCollection ?? 0;
+        $totalDiscount = $collections->totalDiscount ?? 0;
+
+        $totalDues = $totalAmount - ($totalCollection + $totalDiscount);
+
+        // ✅ Net Cash
+        $netCashToday = $todayCash - ($todayCashExp + $todayRefund);
+
+        // ✅ Service Types (with role-based filtering)
+        $serviceCountsQuery = Collection::whereIn('branch_id', $branchIds)
+            ->whereBetween('collectionDate', [$start, $end]);
+
+        if ($isHomePhysio) {
+            $serviceCountsQuery->where('user_id', $user->id);
+        }
+
+        $serviceCounts = $serviceCountsQuery
+            ->selectRaw('service_type_id, COUNT(*) as total')
+            ->groupBy('service_type_id')
+            ->pluck('total', 'service_type_id');
+
+        $serviceTypes = ServiceType::with(['collections' => function ($query) use ($branchIds, $user, $isHomePhysio) {
             $query->whereIn('branch_id', $branchIds);
-            $query->whereDate('collectionDate',Carbon::today());
+            $query->whereDate('collectionDate', Carbon::today());
+            if ($isHomePhysio) {
+                $query->where('user_id', $user->id);
+            }
         }])->get();
 
-    // ✅ Active Packages (already good)
-    $activePackages = Payment::with([
+        // ✅ Active Packages (with role-based filtering)
+        $activePackagesQuery = Payment::with([
             'branch:id,branchName',
-            'patient:id,name,diagnosis',
-            'schedules:id,payment_id,sittingDate,attendedAt'
+            'patient:id,name,diagnosis,created_by',
+            'schedules:id,payment_id,sittingDate,attendedAt',
         ])
-        ->whereIn('branch_id', $branchIds)
-        ->where('active', 1)
-        ->latest()
-        ->limit(50)
-        ->get();
+            ->whereIn('branch_id', $branchIds)
+            ->where('active', 1);
 
-    return view('home', compact(
-        'branches',
-        'newPatients',
-        'todayCash',
-        'todayOnline',
-        'totalDues',
-        'todayCashExp',
-        'todayOnlineExp',
-        'todayRefund',
-        'netCashToday',
-        'serviceTypes',
-        'activePackages',
-        'paymentModes'
-    ));
-}
+        if ($isHomePhysio) {
+            $activePackagesQuery->where('user_id', $user->id);
+        }
 
-public function discontinued(Request $request)
-{
+        $activePackages = $activePackagesQuery
+            ->latest()
+            ->limit(50)
+            ->get();
+
+        // ✅ Today's New Patients List (for display)
+        $newPatientsListQuery = Patient::whereBetween('created_at', [$start, $end])
+            ->whereHas('branches', fn ($q) => $q->whereIn('branches.id', $branchIds));
+
+        if ($isHomePhysio) {
+            $newPatientsListQuery->where('created_by', $user->id);
+        }
+
+        $newPatientsList = $newPatientsListQuery
+            ->latest()
+            ->limit(20)
+            ->get();
+
+        return view('home', compact(
+            'branches',
+            'newPatients',
+            'newPatientsList',
+            'todayCash',
+            'todayOnline',
+            'totalDues',
+            'todayCashExp',
+            'todayOnlineExp',
+            'todayRefund',
+            'netCashToday',
+            'serviceTypes',
+            'activePackages',
+            'paymentModes'
+        ));
+    }
+
+    public function discontinued(Request $request)
+    {
         $branchIds = loggedUser()->branches->pluck('id')->toArray();
-        $branches = Branch::whereIn('id',$branchIds)->get();
+        $branches = Branch::whereIn('id', $branchIds)->get();
 
         $query = DB::table('patients as p')
             ->join('schedules as s', 's.patient_id', '=', 'p.id')
@@ -189,64 +242,70 @@ public function discontinued(Request $request)
             ->groupBy('p.id', 'p.name', 'p.mobile');
 
         $dateFilter = $request->dateFilter;
-        if(isset($request->branchFilter) && ($request->branchFilter != null)){
+        if (isset($request->branchFilter) && ($request->branchFilter != null)) {
             $query->where('s.branch_id', $request->branchFilter);
 
-        }else{
+        } else {
             $query->whereIn('s.branch_id', $branchIds);
         }
 
-        if(isset($request->dateFilter) && ($request->dateFilter != null)){
-            $dates = explode(' - ',$request->dateFilter);
-            $startDate =  Carbon::createFromFormat('d/m/Y', $dates[0])->format('Y-m-d');
-            $endDate =  Carbon::createFromFormat('d/m/Y', $dates[1])->format('Y-m-d');
+        if (isset($request->dateFilter) && ($request->dateFilter != null)) {
+            $dates = explode(' - ', $request->dateFilter);
+            $startDate = Carbon::createFromFormat('d/m/Y', $dates[0])->format('Y-m-d');
+            $endDate = Carbon::createFromFormat('d/m/Y', $dates[1])->format('Y-m-d');
 
             $query->havingBetween('last_attended', [$startDate, $endDate]);
 
-        }else{
+        } else {
             $startDate = '2022-01-01';
             $endDate = '2022-03-31';
             $query->havingBetween('last_attended', [$startDate, $endDate]);
 
         }
 
-
         $patients = $query->latest('last_attended')->paginate(100);
+
         // return  $collections;
-        return view('reports.discontinuedPatients',compact('patients','branches'));
+        return view('reports.discontinuedPatients', compact('patients', 'branches'));
 
-}
+    }
 
-    public function crProfit(){
+    public function crProfit()
+    {
         return view('admin.cr_profit');
     }
 
-    public function profit(Request $request){
+    public function profit(Request $request)
+    {
         $from = $request['from'];
         $upto = $request['upto'];
-        $from = date("Y-m-d", strtotime($from) );
-        $start =Carbon::createFromFormat('Y-m-d H',$from.' 00');
-        $upto = date("Y-m-d", strtotime($upto) );
+        $from = date('Y-m-d', strtotime($from));
+        $start = Carbon::createFromFormat('Y-m-d H', $from.' 00');
+        $upto = date('Y-m-d', strtotime($upto));
 
-        $to =Carbon::createFromFormat('Y-m-d H',$upto.' 23');
+        $to = Carbon::createFromFormat('Y-m-d H', $upto.' 23');
         $collections = Collection::whereBetween('date', [$start, $to])->get();
         $expenses = Expense::whereBetween('date', [$start, $to])->get();
-        return view('admin.profit',compact('collections','expenses'));
+
+        return view('admin.profit', compact('collections', 'expenses'));
     }
 
-    public function listPatients(){
+    public function listPatients()
+    {
         return view('super.create');
     }
-    public function listPatientsResult(Request $request){
+
+    public function listPatientsResult(Request $request)
+    {
         $from = $request['from'];
         $upto = $request['upto'];
-        $from = date("Y-m-d", strtotime($from) );
-        $start =Carbon::createFromFormat('Y-m-d H',$from.' 00');
-        $upto = date("Y-m-d", strtotime($upto) );
-        $to =Carbon::createFromFormat('Y-m-d H',$upto.' 23');
+        $from = date('Y-m-d', strtotime($from));
+        $start = Carbon::createFromFormat('Y-m-d H', $from.' 00');
+        $upto = date('Y-m-d', strtotime($upto));
+        $to = Carbon::createFromFormat('Y-m-d H', $upto.' 23');
         $user = loggedUser();
 
-        $patients = Patient::where('status',null)->whereBetween('date', [$start, $to])->orderBy('date', 'asc');
+        $patients = Patient::where('status', null)->whereBetween('date', [$start, $to])->orderBy('date', 'asc');
 
         if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
             $patients = $patients->where('created_by', $user->id);
@@ -254,24 +313,35 @@ public function discontinued(Request $request)
 
         $patients = $patients->get();
 
-        return view('super.hidePatients',compact('patients'));
+        return view('super.hidePatients', compact('patients'));
     }
 
-    public function hidePatientsList(Request $request){
+    public function hidePatientsList(Request $request)
+    {
         //return $request->all();
         //$pid = array();
         $pIds = $request->input('patient_id');
-        foreach($pIds as $pid){
+        foreach ($pIds as $pid) {
             $patient = Patient::find($pid);
             $patient->status = 1;
             $patient->save();
         }
+
         return redirect()->route('hiddenPatientsLists');
     }
 
-    public function hiddenPatientsLists(){
-        $patients = Patient::where('status',1)->latest()->paginate(10);
-        return view('super.hiddenPatients',compact('patients'));
+    public function hiddenPatientsLists()
+    {
+        $user = loggedUser();
+        $query = Patient::where('status', 1);
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('created_by', $user->id);
+        }
+
+        $patients = $query->latest()->paginate(10);
+
+        return view('super.hiddenPatients', compact('patients'));
 
     }
 
@@ -291,108 +361,187 @@ public function discontinued(Request $request)
         }
 
         $patients = $patients->paginate(120);
+
         return view('reports.duesDetails', compact('patients'));
     }
+
     public function cashToday()
     {
         $brachesId = loggedUser()->branches->pluck('id')->toArray();
-        $collections =  Collection::where('mode_id',1)->whereDate('collectionDate',Carbon::today())->whereIn('branch_id', $brachesId)->get();
-        return view('reports.cashToday',compact('collections'));
+        $user = loggedUser();
+        $query = Collection::where('mode_id', 1)->whereDate('collectionDate', Carbon::today())->whereIn('branch_id', $brachesId);
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $collections = $query->get();
+
+        return view('reports.cashToday', compact('collections'));
     }
+
     public function onlineToday()
     {
         $brachesId = loggedUser()->branches->pluck('id')->toArray();
-        $collections =  Collection::where('mode_id',2)->whereDate('collectionDate',Carbon::today())->whereIn('branch_id', $brachesId)->get();
-        return view('reports.onlineToday',compact('collections'));
+        $user = loggedUser();
+        $query = Collection::where('mode_id', 2)->whereDate('collectionDate', Carbon::today())->whereIn('branch_id', $brachesId);
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $collections = $query->get();
+
+        return view('reports.onlineToday', compact('collections'));
     }
+
     public function patientToday()
     {
         $brachesId = loggedUser()->branches->pluck('id')->toArray();
-        $newPatients = Patient::whereDate('created_at',Carbon::today())->whereHas('branches', function ($q)use($brachesId) {
+        $user = loggedUser();
+        $query = Patient::whereDate('created_at', Carbon::today())->whereHas('branches', function ($q) use ($brachesId) {
             $q->whereIn('branches.id', $brachesId);
-        })->get();
-        return view('reports.patientToday',compact('newPatients'));
+        });
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('created_by', $user->id);
+        }
+
+        $newPatients = $query->get();
+
+        return view('reports.patientToday', compact('newPatients'));
     }
+
     public function cashExpensesToday()
     {
         $brachesId = loggedUser()->branches->pluck('id')->toArray();
-        $todayCashExps = Expense::where('mode_id',1)->whereDate('date',Carbon::today())->whereIn('branch_id', $brachesId)->get();
-        return view('reports.cashExpensesToday',compact('todayCashExps'));
+        $user = loggedUser();
+        $query = Expense::where('mode_id', 1)->whereDate('date', Carbon::today())->whereIn('branch_id', $brachesId);
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $todayCashExps = $query->get();
+
+        return view('reports.cashExpensesToday', compact('todayCashExps'));
     }
+
     public function onlineExpensesToday()
     {
         $brachesId = loggedUser()->branches->pluck('id')->toArray();
-        $todayOnlineExps = Expense::where('mode_id',2)->whereDate('date',Carbon::today())->whereIn('branch_id', $brachesId)->get();
-        return view('reports.onlineExpensesToday',compact('todayOnlineExps'));
+        $user = loggedUser();
+        $query = Expense::where('mode_id', 2)->whereDate('date', Carbon::today())->whereIn('branch_id', $brachesId);
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $todayOnlineExps = $query->get();
+
+        return view('reports.onlineExpensesToday', compact('todayOnlineExps'));
     }
+
     public function totalExpensesToday()
     {
         $brachesId = loggedUser()->branches->pluck('id')->toArray();
-        $todayExps = Expense::whereDate('created_at',Carbon::today())->whereIn('branch_id', $brachesId)->get();
-        return view('reports.totalExpensesToday',compact('todayExps'));
+        $user = loggedUser();
+        $query = Expense::whereDate('created_at', Carbon::today())->whereIn('branch_id', $brachesId);
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $todayExps = $query->get();
+
+        return view('reports.totalExpensesToday', compact('todayExps'));
     }
+
     public function refundToday()
     {
         $brachesId = loggedUser()->branches->pluck('id')->toArray();
-        $todayRefunds = Collection::where('refund','=!',null)->whereDate('created_at',Carbon::today())->whereIn('branch_id', $brachesId)->get();
-        return view('reports.refundToday',compact('todayRefunds'));
+        $user = loggedUser();
+        $query = Collection::where('refund', '=!', null)->whereDate('created_at', Carbon::today())->whereIn('branch_id', $brachesId);
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $todayRefunds = $query->get();
+
+        return view('reports.refundToday', compact('todayRefunds'));
     }
+
     public function netCashToday()
     {
         $branchesId = loggedUser()->branches->pluck('id')->toArray();
-        $collections = Collection::where('mode_id',1)->whereDate('collectionDate',Carbon::today())->whereIn('branch_id', $branchesId)->get();
-        $todayCashRefund = Collection::where('mode_id',1)->whereDate('created_at',Carbon::today())->whereIn('branch_id', $branchesId)->sum('refund');
-        $todayExps = Expense::where('mode_id',1)->whereDate('created_at',Carbon::today())->whereIn('branch_id', $branchesId)->get();
-        return view('reports.netCashToday',compact('collections','todayExps','todayCashRefund'));
-    }
+        $user = loggedUser();
 
+        $collectionsQuery = Collection::where('mode_id', 1)->whereDate('collectionDate', Carbon::today())->whereIn('branch_id', $branchesId);
+        $refundsQuery = Collection::where('mode_id', 1)->whereDate('created_at', Carbon::today())->whereIn('branch_id', $branchesId);
+        $expensesQuery = Expense::where('mode_id', 1)->whereDate('created_at', Carbon::today())->whereIn('branch_id', $branchesId);
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $collectionsQuery->where('user_id', $user->id);
+            $refundsQuery->where('user_id', $user->id);
+            $expensesQuery->where('user_id', $user->id);
+        }
+
+        $collections = $collectionsQuery->get();
+        $todayCashRefund = $refundsQuery->sum('refund');
+        $todayExps = $expensesQuery->get();
+
+        return view('reports.netCashToday', compact('collections', 'todayExps', 'todayCashRefund'));
+    }
 
     public function todayBranchDetails($id)
     {
-        $branch = Branch::where('id',$id)->first();
+        $branch = Branch::where('id', $id)->first();
         $dateTm = Carbon::now()->format(' D d M y H:i A');
-        $todayCashCollections = Collection::where('mode_id',1)->whereDate('collectionDate',Carbon::today())->where('branch_id', $branch->id)->sum('amount');
-        $todayOnlineCollections = Collection::where('mode_id',2)->whereDate('collectionDate',Carbon::today())->where('branch_id', $branch->id)->sum('amount');
-        $todayCashRefund = Collection::where('refund','!=',null)->where('mode_id',1)->whereDate('created_at',Carbon::today())->where('branch_id', $branch->id)->sum('refund');
-        $todayOnlineRefund = Collection::where('refund','!=',null)->where('mode_id',2)->whereDate('created_at',Carbon::today())->where('branch_id', $branch->id)->sum('refund');
-        $todayCashExps = Expense::where('mode_id',1)->whereDate('date',Carbon::today())->where('branch_id', $branch->id)->sum('amount');
-        $todayOnlineExps = Expense::where('mode_id',2)->whereDate('date',Carbon::today())->where('branch_id', $branch->id)->sum('amount');
-        $collections = Collection::whereDate('collectionDate',Carbon::today())->where('refund','=',null)->where('branch_id', $branch->id)->get();
-        $refunds = Collection::whereDate('created_at',Carbon::today())->where('refund','!=',null)->where('branch_id', $branch->id)->get();
-        $expenses = Expense::whereDate('date',Carbon::today())->where('branch_id', $branch->id)->get();
-        $serviceTypes = ServiceType::with(['collections'=> function($query) use($branch) {
+        $todayCashCollections = Collection::where('mode_id', 1)->whereDate('collectionDate', Carbon::today())->where('branch_id', $branch->id)->sum('amount');
+        $todayOnlineCollections = Collection::where('mode_id', 2)->whereDate('collectionDate', Carbon::today())->where('branch_id', $branch->id)->sum('amount');
+        $todayCashRefund = Collection::where('refund', '!=', null)->where('mode_id', 1)->whereDate('created_at', Carbon::today())->where('branch_id', $branch->id)->sum('refund');
+        $todayOnlineRefund = Collection::where('refund', '!=', null)->where('mode_id', 2)->whereDate('created_at', Carbon::today())->where('branch_id', $branch->id)->sum('refund');
+        $todayCashExps = Expense::where('mode_id', 1)->whereDate('date', Carbon::today())->where('branch_id', $branch->id)->sum('amount');
+        $todayOnlineExps = Expense::where('mode_id', 2)->whereDate('date', Carbon::today())->where('branch_id', $branch->id)->sum('amount');
+        $collections = Collection::whereDate('collectionDate', Carbon::today())->where('refund', '=', null)->where('branch_id', $branch->id)->get();
+        $refunds = Collection::whereDate('created_at', Carbon::today())->where('refund', '!=', null)->where('branch_id', $branch->id)->get();
+        $expenses = Expense::whereDate('date', Carbon::today())->where('branch_id', $branch->id)->get();
+        $serviceTypes = ServiceType::with(['collections' => function ($query) use ($branch) {
             $query->where('branch_id', $branch->id);
-            $query->whereDate('collectionDate',Carbon::today());
+            $query->whereDate('collectionDate', Carbon::today());
         }])->get();
-        $paymentModes = Mode::with(['collections'=> function($query) use($branch) {
+        $paymentModes = Mode::with(['collections' => function ($query) use ($branch) {
             $query->where('branch_id', $branch->id);
-            $query->whereDate('collectionDate',Carbon::today());
+            $query->whereDate('collectionDate', Carbon::today());
         }])->get();
-        $expenseModes = Mode::with(['expenses'=> function($query) use($branch) {
+        $expenseModes = Mode::with(['expenses' => function ($query) use ($branch) {
             $query->where('branch_id', $branch->id);
-            $query->whereDate('date',Carbon::today());
+            $query->whereDate('date', Carbon::today());
         }])->get();
 
-        return view('reports.todayBranchDetails',compact('collections','expenses','todayCashCollections','todayOnlineCollections','todayCashRefund','todayOnlineRefund','todayCashExps','todayOnlineExps','serviceTypes','paymentModes','expenseModes','refunds','dateTm','branch'));
+        return view('reports.todayBranchDetails', compact('collections', 'expenses', 'todayCashCollections', 'todayOnlineCollections', 'todayCashRefund', 'todayOnlineRefund', 'todayCashExps', 'todayOnlineExps', 'serviceTypes', 'paymentModes', 'expenseModes', 'refunds', 'dateTm', 'branch'));
     }
 
-  	public function serviceDetail($id)
+    public function serviceDetail($id)
     {
-        $service = ServiceType::where('id',$id)->first();
+        $service = ServiceType::where('id', $id)->first();
         $branchesId = loggedUser()->branches->pluck('id')->toArray();
-        $collections = Collection::whereDate('collectionDate',Carbon::today())->where('service_type_id', $service->id)->whereIn('branch_id', $branchesId)->get();
-        return view('reports.serviceDetails',compact('collections','service'));
+        $collections = Collection::whereDate('collectionDate', Carbon::today())->where('service_type_id', $service->id)->whereIn('branch_id', $branchesId)->get();
+
+        return view('reports.serviceDetails', compact('collections', 'service'));
 
     }
-      public function collectionDetail($id)
+
+    public function collectionDetail($id)
     {
-                $branches = loggedUser()->branches;
+        $branches = loggedUser()->branches;
         // return $branches;
         $branchesId = loggedUser()->branches->pluck('id')->toArray();
-        $paymentMode = Mode::where('id',$id)->first();
-        $collections = Collection::whereIn('branch_id',$branchesId)->whereDate('collectionDate',Carbon::today())->where('mode_id', $paymentMode->id)->get();
-        return view('reports.collectionDetail',compact('collections','paymentMode'));
+        $paymentMode = Mode::where('id', $id)->first();
+        $collections = Collection::whereIn('branch_id', $branchesId)->whereDate('collectionDate', Carbon::today())->where('mode_id', $paymentMode->id)->get();
 
+        return view('reports.collectionDetail', compact('collections', 'paymentMode'));
 
     }
 
@@ -400,82 +549,82 @@ public function discontinued(Request $request)
     {
         //return Carbon::today();
         $branchIds = loggedUser()->branches->pluck('id')->toArray();
-        $branches = Branch::whereIn('id',$branchIds)->get();
-        $branch = Branch::where('id',$request->branchFilter)->first();
+        $branches = Branch::whereIn('id', $branchIds)->get();
+        $branch = Branch::where('id', $request->branchFilter)->first();
         $branchFilter = $request->branchFilter;
         $dateFilter = $request->dateFilter;
-        if(isset($request->dateFilter) && ($request->dateFilter != null)){
-            $dateFilter = Carbon::createFromFormat('d/m/Y', $request->dateFilter,'UTC')->startOfDay();
+        if (isset($request->dateFilter) && ($request->dateFilter != null)) {
+            $dateFilter = Carbon::createFromFormat('d/m/Y', $request->dateFilter, 'UTC')->startOfDay();
 
-            $todayCashCollections = Collection::where('mode_id',1)->whereDate('collectionDate',$dateFilter)->whereIn('branch_id', $branchFilter)->sum('amount');
-            $todayOnlineCollections = Collection::where('mode_id',2)->whereDate('collectionDate',$dateFilter)->whereIn('branch_id', $branchFilter)->sum('amount');
-            $todayCashRefund = Collection::where('refund','!=',null)->where('mode_id',1)->whereDate('collectionDate',$dateFilter)->whereIn('branch_id', $branchFilter)->sum('refund');
-            $todayOnlineRefund = Collection::where('refund','!=',null)->where('mode_id',2)->whereDate('collectionDate',$dateFilter)->whereIn('branch_id', $branchFilter)->sum('refund');
-            $todayCashExps = Expense::where('mode_id',1)->whereDate('created_at',$dateFilter)->whereIn('branch_id', $branchFilter)->sum('amount');
-            $todayOnlineExps = Expense::where('mode_id',2)->whereDate('created_at',$dateFilter)->whereIn('branch_id', $branchFilter)->sum('amount');
-            $collections = Collection::whereDate('collectionDate',$dateFilter)->where('refund','=',null)->whereIn('branch_id', $branchFilter)->get();
-            $refunds = Collection::whereDate('collectionDate',$dateFilter)->where('refund','!=',null)->whereIn('branch_id', $branchFilter)->get();
-            $expenses = Expense::whereDate('created_at',$dateFilter)->whereIn('branch_id', $branchFilter)->get();
-            $serviceTypes = ServiceType::with(['collections'=> function($query) use($branchFilter,$dateFilter) {
+            $todayCashCollections = Collection::where('mode_id', 1)->whereDate('collectionDate', $dateFilter)->whereIn('branch_id', $branchFilter)->sum('amount');
+            $todayOnlineCollections = Collection::where('mode_id', 2)->whereDate('collectionDate', $dateFilter)->whereIn('branch_id', $branchFilter)->sum('amount');
+            $todayCashRefund = Collection::where('refund', '!=', null)->where('mode_id', 1)->whereDate('collectionDate', $dateFilter)->whereIn('branch_id', $branchFilter)->sum('refund');
+            $todayOnlineRefund = Collection::where('refund', '!=', null)->where('mode_id', 2)->whereDate('collectionDate', $dateFilter)->whereIn('branch_id', $branchFilter)->sum('refund');
+            $todayCashExps = Expense::where('mode_id', 1)->whereDate('created_at', $dateFilter)->whereIn('branch_id', $branchFilter)->sum('amount');
+            $todayOnlineExps = Expense::where('mode_id', 2)->whereDate('created_at', $dateFilter)->whereIn('branch_id', $branchFilter)->sum('amount');
+            $collections = Collection::whereDate('collectionDate', $dateFilter)->where('refund', '=', null)->whereIn('branch_id', $branchFilter)->get();
+            $refunds = Collection::whereDate('collectionDate', $dateFilter)->where('refund', '!=', null)->whereIn('branch_id', $branchFilter)->get();
+            $expenses = Expense::whereDate('created_at', $dateFilter)->whereIn('branch_id', $branchFilter)->get();
+            $serviceTypes = ServiceType::with(['collections' => function ($query) use ($branchFilter, $dateFilter) {
                 $query->whereIn('branch_id', $branchFilter);
-                $query->whereDate('collectionDate',$dateFilter);
+                $query->whereDate('collectionDate', $dateFilter);
             }])->get();
-            $paymentModes = Mode::with(['collections'=> function($query) use($branchFilter,$dateFilter) {
+            $paymentModes = Mode::with(['collections' => function ($query) use ($branchFilter, $dateFilter) {
                 $query->whereIn('branch_id', $branchFilter);
-                $query->whereDate('collectionDate',$dateFilter);
+                $query->whereDate('collectionDate', $dateFilter);
             }])->get();
-            $expenseModes = Mode::with(['expenses'=> function($query) use($branchFilter,$dateFilter) {
+            $expenseModes = Mode::with(['expenses' => function ($query) use ($branchFilter, $dateFilter) {
                 $query->whereIn('branch_id', $branchFilter);
-                $query->whereDate('created_at',$dateFilter);
+                $query->whereDate('created_at', $dateFilter);
             }])->get();
-            return view('reports.customDailyReport',compact('collections','branches','branchFilter','expenses','todayCashCollections','todayOnlineCollections','todayCashRefund','todayOnlineRefund','todayCashExps','todayOnlineExps','serviceTypes','paymentModes','expenseModes','refunds','dateFilter'));
+
+            return view('reports.customDailyReport', compact('collections', 'branches', 'branchFilter', 'expenses', 'todayCashCollections', 'todayOnlineCollections', 'todayCashRefund', 'todayOnlineRefund', 'todayCashExps', 'todayOnlineExps', 'serviceTypes', 'paymentModes', 'expenseModes', 'refunds', 'dateFilter'));
 
         }
 
-        return view('reports.customDailyReport',compact('branches','branchFilter'));
+        return view('reports.customDailyReport', compact('branches', 'branchFilter'));
     }
 
-      public function rangeDailyReport(Request $request)
+    public function rangeDailyReport(Request $request)
     {
         //return Carbon::today();
         $branchIds = loggedUser()->branches->pluck('id')->toArray();
-        $branches = Branch::whereIn('id',$branchIds)->get();
-        $branch = Branch::where('id',$request->branchFilter)->first();
+        $branches = Branch::whereIn('id', $branchIds)->get();
+        $branch = Branch::where('id', $request->branchFilter)->first();
         $branchFilter = $request->branchFilter;
         $dateFilter = $request->dateFilter;
-        if(isset($request->dateFilter) && ($request->dateFilter != null)){
-            $dates = explode(' - ',$request->dateFilter);
-            $startDate =  Carbon::createFromFormat('d/m/Y', $dates[0])->startOfDay();
-            $endDate =  Carbon::createFromFormat('d/m/Y', $dates[1])->endOfDay();
-         // return $startDate.'<br/>'.$endDate;
-            $dateRange = [$startDate,$endDate];
-            $todayCashCollections = Collection::where('mode_id',1)->whereBetween('collectionDate',$dateRange)->where('branch_id', $branch->id)->sum('amount');
-            $todayOnlineCollections = Collection::where('mode_id',2)->whereBetween('collectionDate',$dateRange)->where('branch_id', $branch->id)->sum('amount');
-            $todayCashRefund = Collection::where('refund','!=',null)->where('mode_id',1)->whereBetween('collectionDate',$dateRange)->where('branch_id', $branch->id)->sum('refund');
-            $todayOnlineRefund = Collection::where('refund','!=',null)->where('mode_id',2)->whereBetween('collectionDate',$dateRange)->where('branch_id', $branch->id)->sum('refund');
-            $todayCashExps = Expense::where('mode_id',1)->whereBetween('created_at',$dateRange)->where('branch_id', $branch->id)->sum('amount');
-            $todayOnlineExps = Expense::where('mode_id',2)->whereBetween('created_at',$dateRange)->where('branch_id', $branch->id)->sum('amount');
-            $collections = Collection::whereBetween('collectionDate',$dateRange)->where('refund','=',null)->where('branch_id', $branch->id)->get();
-            $refunds = Collection::whereBetween('collectionDate',$dateRange)->where('refund','!=',null)->where('branch_id', $branch->id)->get();
-            $expenses = Expense::whereBetween('created_at',$dateRange)->where('branch_id', $branch->id)->get();
-            $serviceTypes = ServiceType::with(['collections'=> function($query) use($branch,$dateRange) {
+        if (isset($request->dateFilter) && ($request->dateFilter != null)) {
+            $dates = explode(' - ', $request->dateFilter);
+            $startDate = Carbon::createFromFormat('d/m/Y', $dates[0])->startOfDay();
+            $endDate = Carbon::createFromFormat('d/m/Y', $dates[1])->endOfDay();
+            // return $startDate.'<br/>'.$endDate;
+            $dateRange = [$startDate, $endDate];
+            $todayCashCollections = Collection::where('mode_id', 1)->whereBetween('collectionDate', $dateRange)->where('branch_id', $branch->id)->sum('amount');
+            $todayOnlineCollections = Collection::where('mode_id', 2)->whereBetween('collectionDate', $dateRange)->where('branch_id', $branch->id)->sum('amount');
+            $todayCashRefund = Collection::where('refund', '!=', null)->where('mode_id', 1)->whereBetween('collectionDate', $dateRange)->where('branch_id', $branch->id)->sum('refund');
+            $todayOnlineRefund = Collection::where('refund', '!=', null)->where('mode_id', 2)->whereBetween('collectionDate', $dateRange)->where('branch_id', $branch->id)->sum('refund');
+            $todayCashExps = Expense::where('mode_id', 1)->whereBetween('created_at', $dateRange)->where('branch_id', $branch->id)->sum('amount');
+            $todayOnlineExps = Expense::where('mode_id', 2)->whereBetween('created_at', $dateRange)->where('branch_id', $branch->id)->sum('amount');
+            $collections = Collection::whereBetween('collectionDate', $dateRange)->where('refund', '=', null)->where('branch_id', $branch->id)->get();
+            $refunds = Collection::whereBetween('collectionDate', $dateRange)->where('refund', '!=', null)->where('branch_id', $branch->id)->get();
+            $expenses = Expense::whereBetween('created_at', $dateRange)->where('branch_id', $branch->id)->get();
+            $serviceTypes = ServiceType::with(['collections' => function ($query) use ($branch, $dateRange) {
                 $query->where('branch_id', $branch->id);
-                $query->whereBetween('collectionDate',$dateRange);
+                $query->whereBetween('collectionDate', $dateRange);
             }])->get();
-            $paymentModes = Mode::with(['collections'=> function($query) use($branch,$dateRange) {
+            $paymentModes = Mode::with(['collections' => function ($query) use ($branch, $dateRange) {
                 $query->where('branch_id', $branch->id);
-                $query->whereBetween('collectionDate',$dateRange);
+                $query->whereBetween('collectionDate', $dateRange);
             }])->get();
-            $expenseModes = Mode::with(['expenses'=> function($query) use($branch,$dateRange) {
+            $expenseModes = Mode::with(['expenses' => function ($query) use ($branch, $dateRange) {
                 $query->where('branch_id', $branch->id);
-                $query->whereBetween('created_at',$dateRange);
+                $query->whereBetween('created_at', $dateRange);
             }])->get();
-            return view('reports.rangeDailyReport',compact('collections','branches','branchFilter','expenses','todayCashCollections','todayOnlineCollections','todayCashRefund','todayOnlineRefund','todayCashExps','todayOnlineExps','serviceTypes','paymentModes','expenseModes','refunds','dateFilter'));
+
+            return view('reports.rangeDailyReport', compact('collections', 'branches', 'branchFilter', 'expenses', 'todayCashCollections', 'todayOnlineCollections', 'todayCashRefund', 'todayOnlineRefund', 'todayCashExps', 'todayOnlineExps', 'serviceTypes', 'paymentModes', 'expenseModes', 'refunds', 'dateFilter'));
 
         }
 
-        return view('reports.rangeDailyReport',compact('branches','branchFilter'));
+        return view('reports.rangeDailyReport', compact('branches', 'branchFilter'));
     }
-
-
 }

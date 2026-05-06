@@ -67,6 +67,8 @@ class Kernel extends HttpKernel
         'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
         'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
         'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
-        'isAdmin' => \App\Http\Middleware\AdminMiddleware::class
+        'isAdmin' => \App\Http\Middleware\AdminMiddleware::class,
+        'homePhysio' => \App\Http\Middleware\HomePhysiotherapistMiddleware::class,
+        'ownData' => \App\Http\Middleware\RestrictToOwnData::class,
     ];
 }

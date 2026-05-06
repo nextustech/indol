@@ -1,4 +1,9 @@
 <!-- Main Sidebar Container -->
+@php
+$user = Auth::user();
+$isHomePhysio = $user && $user->roles->pluck('name')->first() === 'HomePhysiotherapist';
+$isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin', 'Admin', 'owner', 'DIRECTOR']);
+@endphp
 <aside class="main-sidebar sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
     <a href="{{ url('home') }}" class="brand-link">
@@ -52,15 +57,17 @@
                                 <p>Register Patient</p>
                             </a>
                         </li>
+                        @if(!$isHomePhysio)
                         <li class="nav-item">
                             <a href="{{ route('oldOpd') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Old OPD Patient</p>
                             </a>
                         </li>
-
+                        @endif
                     </ul>
                 </li>
+                @if(!$isHomePhysio)
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-user"></i>
@@ -84,10 +91,18 @@
                         </li>
                     </ul>
                 </li>
-              	@can('list-Expense')
+                @else
                 <li class="nav-item">
-                    <a href="#" class="nav-link">
+                    <a href="{{ route('patients.index') }}" class="nav-link">
                         <i class="nav-icon fas fa-user"></i>
+                        <p>My Patients</p>
+                    </a>
+                </li>
+                @endif
+              	@can('list-Expense')
+                 <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-money-bill"></i>
                         <p>
                             Expenses
                             <i class="right fas fa-angle-left"></i>
@@ -97,7 +112,7 @@
                         <li class="nav-item">
                             <a href="{{ route('expenses.index') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>Expense List</p>
+                                <p>My Expenses</p>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -106,6 +121,7 @@
                                 <p>Add Expense</p>
                             </a>
                         </li>
+                        @if(!$isHomePhysio)
                         <li class="nav-item">
                             <a href="{{ route('ecat.create') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
@@ -118,10 +134,10 @@
                                 <p>Expense Categories</p>
                             </a>
                         </li>
-
+                        @endif
                     </ul>
                 </li>
-              @endcan
+               @endcan
               @can('Hide-Patients')
                 <li class="nav-item">
                     <a href="#" class="nav-link">

@@ -48,17 +48,8 @@ class CollectionController extends Controller
         $upto = date("Y-m-d", strtotime($upto) );
 
         $to =Carbon::createFromFormat('Y-m-d H',$upto.' 23');
-        $collections = Collection::whereBetween('date', [$start, $to])->get();
-        $refunds = Collection::whereBetween('refundDate', [$start, $to])->get();
+        $user = loggedUser();
 
-//        if($branch_id){
-//            $collections = Collection::where('branch_id',$branch_id)->whereBetween('date', [$start, $to])->get();
-//            $refunds = Collection::where('branch_id',$branch_id)->whereBetween('refundDate', [$start, $to])->get();
-//        }else{
-//            $collections = Collection::whereBetween('date', [$start, $to])->get();
-//            $refunds = Collection::whereBetween('refundDate', [$start, $to])->get();
-//
-//        }
         $data = DB::table('collections');
         $rdata =  DB::table('collections');
         if( $request->branch_id){
@@ -68,6 +59,11 @@ class CollectionController extends Controller
         if( $request->from != Null && $request->upto != Null){
             $data = $data->whereBetween('date', [$start,$to]);
             $rdata = $rdata->where('refundDate', $request->branch_id);
+        }
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $data = $data->where('user_id', $user->id);
+            $rdata = $rdata->where('user_id', $user->id);
         }
 
 
@@ -84,7 +80,14 @@ class CollectionController extends Controller
     }
     public function index()
     {
-        $collections = Collection::all();
+        $user = loggedUser();
+        $query = Collection::query();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $collections = $query->latest()->paginate(25);
         return view('collections.index',compact('collections'));
     }
 
@@ -174,8 +177,16 @@ class CollectionController extends Controller
      * @param  \App\Collection  $collection
      * @return \Illuminate\Http\Response
      */
-    public function edit(Collection $collection)
+public function edit(Collection $collection)
     {
+        $user = loggedUser();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            if ($collection->user_id !== $user->id) {
+                abort(403, 'Unauthorized access');
+            }
+        }
+
         return view('collections.edit',compact('collection'));
     }
 
@@ -188,12 +199,20 @@ class CollectionController extends Controller
      */
     public function update(Request $request, Collection $collection)
     {
-      	if($request->collectionDate == null ){
-          $request['collectionDate'] = $collection->collectionDate;
+        $user = loggedUser();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            if ($collection->user_id !== $user->id) {
+                abort(403, 'Unauthorized access');
+            }
         }
-      	// return $request->all();
-        $collection->update($request->all());
-        return redirect()->route('payIndex',$collection->payment_id)->with('message','Updated Successfully');
+
+       	if($request->collectionDate == null ){
+           $request['collectionDate'] = $collection->collectionDate;
+         }
+       	// return $request->all();
+         $collection->update($request->all());
+         return redirect()->route('payIndex',$collection->payment_id)->with('message','Updated Successfully');
     }
 
     /**
@@ -204,9 +223,16 @@ class CollectionController extends Controller
      */
     public function destroy(Collection $collection)
     {
-        Collection::destroy($collection->id);
+        $user = loggedUser();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            if ($collection->user_id !== $user->id) {
+                abort(403, 'Unauthorized access');
+            }
+        }
+
+Collection::destroy($collection->id);
         return redirect()->back()->with('message','Deleted Successfully');
-		// return "sorry You can Not Delete";
     }
 
 
@@ -269,7 +295,7 @@ class CollectionController extends Controller
 
 
     public function todayCash(){
-        $user = Auth::user();
+        $user = loggedUser();
         $time = Carbon::now();
         $time = $time->toDateString();
         $start = Carbon::createFromFormat('Y-m-d H', $time.' 00')->toDateTimeString();
@@ -279,53 +305,52 @@ class CollectionController extends Controller
 
         $to = Carbon::createFromFormat('Y-m-d H:i', $dt.' 23:59')->toDateTimeString();
 
-        //return $start.'<br>'.$to;
-        if( $user->role == 1 && $user->super == null){
-            $DailyCash = Collection::where('cash',1)->whereIn('branch_id',[1,2])->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
-            $otherPayments = Collection::whereIn('branch_id',[1,2])->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
-            $refunds = Collection::whereIn('branch_id',[1,2])->whereBetween('refundDate', [$start, $to])->get();
-            $DailyExpenses = Expense::whereIn('branch_id',[1,2])->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
-            $CashExpense = Expense::whereIn('branch_id',[1,2])->where('mode_id',1)->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->sum('amount');
-            $CashRefunds = Collection::whereIn('branch_id',[1,2])->where('cash',1)->whereBetween('refundDate', [$start, $to])->sum('refund');
+        $isHomePhysio = $user->roles->pluck('name')->first() === 'HomePhysiotherapist';
+        $userBranchIds = $user->branches->pluck('id')->toArray();
+
+        if($isHomePhysio){
+            $DailyCash = Collection::where('cash',1)->whereIn('branch_id', $userBranchIds)->where('user_id', $user->id)->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
+            $otherPayments = Collection::whereIn('branch_id', $userBranchIds)->where('user_id', $user->id)->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
+            $refunds = Collection::whereIn('branch_id', $userBranchIds)->where('user_id', $user->id)->whereBetween('refundDate', [$start, $to])->get();
+            $DailyExpenses = Expense::whereIn('branch_id', $userBranchIds)->where('user_id', $user->id)->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
+            $CashExpense = Expense::whereIn('branch_id', $userBranchIds)->where('user_id', $user->id)->where('mode_id',1)->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->sum('amount');
+            $CashRefunds = Collection::whereIn('branch_id', $userBranchIds)->where('user_id', $user->id)->where('cash',1)->whereBetween('refundDate', [$start, $to])->sum('refund');
             $modeWisePayments = DB::table('collections')
                 ->select('cash', DB::raw('SUM(amount) as total_amount'))
-                ->whereIn('branch_id',[1,2])
+                ->whereIn('branch_id', $userBranchIds)
+                ->where('user_id', $user->id)
                 ->whereBetween('date', [$start, $to])
                 ->groupBy('cash')
                 ->get();
             $modeWiseRefunds = DB::table('collections')
                 ->select('cash', DB::raw('SUM(refund) as total_refund'))
+                ->whereIn('branch_id', $userBranchIds)
+                ->where('user_id', $user->id)
                 ->whereBetween('date', [$start, $to])
                 ->groupBy('cash')
                 ->get();
-
-
             return view('reports.cashToday',compact('modeWisePayments','modeWiseRefunds','CashRefunds','DailyCash','refunds','DailyExpenses','otherPayments','CashExpense'));
-        }elseif($user->role == 1 && $user->super == 1){
-            $DailyCash = Collection::where('cash',1)->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
-            $otherPayments = Collection::whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
-            $refunds = Collection::whereBetween('refundDate', [$start, $to])->get();
-            $DailyExpenses = Expense::whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
-            $CashExpense = Expense::where('mode_id',1)->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->sum('amount');
-            $CashRefunds = Collection::where('cash',1)->whereBetween('refundDate', [$start, $to])->sum('refund');
-            $modeWisePayments = DB::table('collections')
-                ->select('cash', DB::raw('SUM(amount) as total_amount'))
-                ->whereBetween('date', [$start, $to])
-                ->groupBy('cash')
-                ->get();
-            $modeWiseRefunds = DB::table('collections')
-                ->select('cash', DB::raw('SUM(refund) as total_refund'))
-                ->whereBetween('date', [$start, $to])
-                ->groupBy('cash')
-                ->get();
-
-
-            return view('reports.cashToday',compact('modeWisePayments','modeWiseRefunds','CashRefunds','DailyCash','refunds','DailyExpenses','otherPayments','CashExpense'));
-
         }else{
-
+            $DailyCash = Collection::where('cash',1)->whereIn('branch_id', $userBranchIds)->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
+            $otherPayments = Collection::whereIn('branch_id', $userBranchIds)->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
+            $refunds = Collection::whereIn('branch_id', $userBranchIds)->whereBetween('refundDate', [$start, $to])->get();
+            $DailyExpenses = Expense::whereIn('branch_id', $userBranchIds)->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->get();
+            $CashExpense = Expense::whereIn('branch_id', $userBranchIds)->where('mode_id',1)->whereBetween('date', [$start, $to])->orderBy('date', 'desc')->sum('amount');
+            $CashRefunds = Collection::whereIn('branch_id', $userBranchIds)->where('cash',1)->whereBetween('refundDate', [$start, $to])->sum('refund');
+            $modeWisePayments = DB::table('collections')
+                ->select('cash', DB::raw('SUM(amount) as total_amount'))
+                ->whereIn('branch_id', $userBranchIds)
+                ->whereBetween('date', [$start, $to])
+                ->groupBy('cash')
+                ->get();
+            $modeWiseRefunds = DB::table('collections')
+                ->select('cash', DB::raw('SUM(refund) as total_refund'))
+                ->whereIn('branch_id', $userBranchIds)
+                ->whereBetween('date', [$start, $to])
+                ->groupBy('cash')
+                ->get();
+            return view('reports.cashToday',compact('modeWisePayments','modeWiseRefunds','CashRefunds','DailyCash','refunds','DailyExpenses','otherPayments','CashExpense'));
         }
-
     }
 
     public function monthWise(){
@@ -344,6 +369,7 @@ class CollectionController extends Controller
         $branches = Branch::whereIn('id',$branchIds)->get();
         $modes = Mode::all();
         $serviceTypes = ServiceType::all();
+        $user = loggedUser();
 
         $query = Collection::query();
         $branchFilter = $request->branchFilter ;
@@ -369,6 +395,11 @@ class CollectionController extends Controller
                 $q->where('id',$request->modeFilter);
             });
         }
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
         switch($dateFilter){
             case 'today':
                 $query->whereDate('created_at',Carbon::today());
@@ -410,7 +441,7 @@ class CollectionController extends Controller
 
 
     }
-     public function collectionReportCustom(Request $request){
+public function collectionReportCustom(Request $request){
          // return $request->all();
         // $endDate =  ;
 
@@ -419,6 +450,7 @@ class CollectionController extends Controller
          $branches = Branch::whereIn('id',$branchIds)->get();
          $modes = Mode::all();
          $serviceTypes = ServiceType::all();
+         $user = loggedUser();
 
          $query = Collection::query();
          $dateFilter = $request->dateFilter;
@@ -454,6 +486,10 @@ class CollectionController extends Controller
 
          }
 
+         if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+             $query->where('user_id', $user->id);
+         }
+
          $totalAmount = $query->sum('amount');
          $collections = $query->latest()->paginate(100);
         // return  $collections;
@@ -472,6 +508,7 @@ class CollectionController extends Controller
         $branches = Branch::whereIn('id',$branchIds)->get();
         $modes = Mode::all();
         $serviceTypes = ServiceType::all();
+        $user = loggedUser();
 
         $query = Collection::query();
         $dateFilter = $request->dateFilter;
@@ -491,6 +528,11 @@ class CollectionController extends Controller
                 $q->where('id',$request->modeFilter);
             });
         }
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
         switch($dateFilter){
             case 'today':
                 $query->whereDate('created_at',Carbon::today());

@@ -3,36 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Models\Branch;
+use App\Models\Collection;
 use App\Models\Image;
 use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\Schedule;
-use App\Models\Collection;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class PatientController extends Controller
 {
-
-
     public function __construct()
     {
-        $this->middleware('permission:list-Patient', ['only'=>['index']]);
-        $this->middleware('permission:show-PatientProfile', ['only'=>['show']]);
-        $this->middleware('permission:edit-PatientProfile', ['only'=>['edit']]);
-        $this->middleware('permission:update-PatientProfile', ['only'=>['update']]);
-        $this->middleware('permission:delete-PatientProfile', ['only'=>['destroy']]);
-        $this->middleware('permission:getChangeBranch', ['only'=>['getChangeBranch']]);
-        $this->middleware('permission:changeBranch', ['only'=>['changeBranch']]);
-
+        $this->middleware('permission:list-Patient', ['only' => ['index']]);
+        $this->middleware('permission:show-PatientProfile', ['only' => ['show']]);
+        $this->middleware('permission:edit-PatientProfile', ['only' => ['edit']]);
+        $this->middleware('permission:update-PatientProfile', ['only' => ['update']]);
+        $this->middleware('permission:delete-PatientProfile', ['only' => ['destroy']]);
+        $this->middleware('permission:getChangeBranch', ['only' => ['getChangeBranch']]);
+        $this->middleware('permission:changeBranch', ['only' => ['changeBranch']]);
 
     }
 
     /**
      * Display a listing of the resource.
      */
-
     public function index(Request $request)
     {
         $user = loggedUser();
@@ -69,8 +64,8 @@ class PatientController extends Controller
         // -----------------------
         if ($request->filled('date_from') && $request->filled('date_to')) {
             $patients->whereBetween('date', [
-                $request->date_from . " 00:00:00",
-                $request->date_to . " 23:59:59"
+                $request->date_from.' 00:00:00',
+                $request->date_to.' 23:59:59',
             ]);
         }
 
@@ -83,6 +78,7 @@ class PatientController extends Controller
 
         return view('patients.index', compact('patients', 'brnches'));
     }
+
     /**
      * Show the form for creating a new resource.
      */
@@ -131,72 +127,73 @@ class PatientController extends Controller
     // }
 
     public function show(Patient $patient)
-{
-    $user = loggedUser();
+    {
+        $user = loggedUser();
 
-    // -----------------------
-    // 🔐 ACCESS CONTROL (IMPORTANT)
-    // -----------------------
+        // -----------------------
+        // 🔐 ACCESS CONTROL (IMPORTANT)
+        // -----------------------
         if ($user->roles->pluck('name')->contains('HomePhysiotherapist')
             && $patient->created_by !== $user->id) {
 
             abort(403, 'Unauthorized access');
         }
-    // -----------------------
-    // 📅 CURRENT DATE START
-    // -----------------------
-    $dt = now()->startOfDay();
-
-    // -----------------------
-    // 💳 ACTIVE PAYMENT
-    // -----------------------
-    $active = Payment::where('patient_id', $patient->id)
-        ->where('active', 1)
-        ->latest()
-        ->first();
-
-    $schedules = collect(); // default empty collection
-    $attendedSittings = 0;
-
-    if ($active) {
+        // -----------------------
+        // 📅 CURRENT DATE START
+        // -----------------------
+        $dt = now()->startOfDay();
 
         // -----------------------
-        // 📅 SCHEDULE QUERY (optimized)
+        // 💳 ACTIVE PAYMENT
         // -----------------------
-        $scheduleQuery = Schedule::where('patient_id', $patient->id)
-            ->where('payment_id', $active->id);
+        $active = Payment::where('patient_id', $patient->id)
+            ->where('active', 1)
+            ->latest()
+            ->first();
 
-        if (!empty($active->pakage_id)) {
-            $scheduleQuery->where('pakage_id', $active->pakage_id);
+        $schedules = collect(); // default empty collection
+        $attendedSittings = 0;
+
+        if ($active) {
+
+            // -----------------------
+            // 📅 SCHEDULE QUERY (optimized)
+            // -----------------------
+            $scheduleQuery = Schedule::where('patient_id', $patient->id)
+                ->where('payment_id', $active->id);
+
+            if (! empty($active->pakage_id)) {
+                $scheduleQuery->where('pakage_id', $active->pakage_id);
+            }
+
+            $schedules = $scheduleQuery
+                ->orderBy('sittingDate')
+                ->orderBy('visit_order')
+                ->get();
+
+            // -----------------------
+            // ✅ ATTENDED COUNT (no duplicate base query)
+            // -----------------------
+            $attendedSittings = (clone $scheduleQuery)
+                ->whereNotNull('attendedAt')
+                ->count();
         }
 
-        $schedules = $scheduleQuery
-            ->orderBy('sittingDate')
-            ->orderBy('visit_order')
-            ->get();
+        // -----------------------
+        // 🖼️ IMAGES
+        // -----------------------
+        $productImages = Image::where('patient_id', $patient->id)->get();
 
-        // -----------------------
-        // ✅ ATTENDED COUNT (no duplicate base query)
-        // -----------------------
-        $attendedSittings = (clone $scheduleQuery)
-            ->whereNotNull('attendedAt')
-            ->count();
+        return view('patients.show', compact(
+            'patient',
+            'dt',
+            'schedules',
+            'active',
+            'attendedSittings',
+            'productImages'
+        ));
     }
 
-    // -----------------------
-    // 🖼️ IMAGES
-    // -----------------------
-    $productImages = Image::where('patient_id', $patient->id)->get();
-
-    return view('patients.show', compact(
-        'patient',
-        'dt',
-        'schedules',
-        'active',
-        'attendedSittings',
-        'productImages'
-    ));
-}
     /**
      * Show the form for editing the specified resource.
      *
@@ -205,70 +202,70 @@ class PatientController extends Controller
      */
     public function edit(Patient $patient)
     {
-        return view('patients.edit',compact('patient',));
+        return view('patients.edit', compact('patient'));
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
      * @param  \App\Patient  $patient
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, Patient $patient)
     {
-        if($request['date']!= null){
-            $dt = date("Y-m-d", strtotime($request['date']) );
+        if ($request['date'] != null) {
+            $dt = date('Y-m-d', strtotime($request['date']));
             // $dt = $dt->toDateTimeString();
-            $request['date'] = Carbon::createFromFormat('Y-m-d H',$dt.' 00');
+            $request['date'] = Carbon::createFromFormat('Y-m-d H', $dt.' 00');
             //return  $request['date'] ;
-            $date = Carbon::createFromFormat('Y-m-d H',$dt.' 00');
+            $date = Carbon::createFromFormat('Y-m-d H', $dt.' 00');
             //'Y-m-d H', $dtFr.' 22'
             // return $date;
             //return $request['date'];
         }
 
-        if($request->hasFile('file')){
+        if ($request->hasFile('file')) {
             $image = $request->file('file');
             $request['image'] = time().'-'.$image->getClientOriginalName();
             $destinationPath = public_path('/images/patients/');
             $image->move($destinationPath, $request['image']);
             $request['image'] = 'images/patients/'.$request['image'];
-        }else{
+        } else {
             $request['image'] = $patient->image;
         }
 
-        if($patient->update($request->all())){
-            return redirect()->route('patients.index')->with('message','Patient Successfully Updated');
-        }else{
-            return'Sorry Something Went Wrong';
+        if ($patient->update($request->all())) {
+            return redirect()->route('patients.index')->with('message', 'Patient Successfully Updated');
+        } else {
+            return 'Sorry Something Went Wrong';
         }
 
     }
 
-    public function Schedule(Patient $patient){
+    public function Schedule(Patient $patient)
+    {
         $now = Carbon::now();
         $dt = Carbon::createFromFormat('Y-m-d H', $now->toDateString().'00')->toDateTimeString();
-        $active = Payment::where('patient_id',$patient->id)->where('active',1)->first();
-        if($active){
-                if($active->pakage_id  != null){
-                $schedules = Schedule::where('patient_id',$patient->id)->where('pakage_id',$active->pakage_id)->where('payment_id',$active->id)->orderBy('sittingDate','asc')->orderBy('visit_order','asc')->get();
+        $active = Payment::where('patient_id', $patient->id)->where('active', 1)->first();
+        if ($active) {
+            if ($active->pakage_id != null) {
+                $schedules = Schedule::where('patient_id', $patient->id)->where('pakage_id', $active->pakage_id)->where('payment_id', $active->id)->orderBy('sittingDate', 'asc')->orderBy('visit_order', 'asc')->get();
                 $visits = $schedules->count();
-            }elseif($active->pakage_id == null){
-                $schedules = Schedule::where('patient_id',$patient->id)->where('payment_id',$active->id)->orderBy('sittingDate','asc')->orderBy('visit_order','asc')->get();
+            } elseif ($active->pakage_id == null) {
+                $schedules = Schedule::where('patient_id', $patient->id)->where('payment_id', $active->id)->orderBy('sittingDate', 'asc')->orderBy('visit_order', 'asc')->get();
                 $visits = $schedules->count();
-            }else{
+            } else {
                 $schedules = null;
             }
 
-        }
-        else{
+        } else {
             $schedules = null;
         }
         // return $schedules;
 
         $branch = $patient->branches()->first();
-        return view('schedules.show',compact('patient','dt','schedules','active','visits','branch'));
+
+        return view('schedules.show', compact('patient', 'dt', 'schedules', 'active', 'visits', 'branch'));
     }
 
     /**
@@ -280,110 +277,140 @@ class PatientController extends Controller
     public function destroy(Patient $patient)
     {
         Patient::destroy($patient->id);
-        return redirect()->route('patients.index')->with('message','Deleted Successfully');
+
+        return redirect()->route('patients.index')->with('message', 'Deleted Successfully');
     }
 
-
-    public function cr(){
+    public function cr()
+    {
         return view('patients.search');
     }
-    public function search(Request $request){
-        if($request->ajax()){
-            $user = Auth::user();
-            $Output = "";
-            $patient = Patient::where('name','LIKE','%'.$request->search.'%')
-                ->orWhere('phone','LIKE','%'.$request->search.'%')
-                ->orWhere('mobile','LIKE','%'.$request->search.'%')
-                ->orWhere('patientId','LIKE','%'.$request->search.'%')
-                ->get();
-            if($patient){
-                foreach( $patient as $k => $c ){
+
+    public function search(Request $request)
+    {
+        if ($request->ajax()) {
+            $user = loggedUser();
+            $branchIds = $user->branches->pluck('id')->toArray();
+
+            $Output = '';
+            $patient = Patient::whereHas('branches', function ($q) use ($branchIds) {
+                $q->whereIn('branches.id', $branchIds);
+            })
+                ->where(function ($q) use ($request) {
+                    $q->where('name', 'LIKE', '%'.$request->search.'%')
+                        ->orWhere('phone', 'LIKE', '%'.$request->search.'%')
+                        ->orWhere('mobile', 'LIKE', '%'.$request->search.'%')
+                        ->orWhere('patientId', 'LIKE', '%'.$request->search.'%');
+                });
+
+            // Role-based filter for HomePhysiotherapist
+            if ($user->isHomePhysiotherapist()) {
+                $patient->where('created_by', $user->id);
+            }
+
+            $patient = $patient->get();
+            if ($patient) {
+                foreach ($patient as $k => $c) {
                     $dt = $c->created_at;
                     $date = $dt->format('m/y');
                     $Output .= '<tr>'.
 
-                        '<td >' .'GPC-'.$c->patientId.$date.'</td>'.
-                        '<td>'.$c-> name.'</td>'.
-                        '<td>'.$c-> age .'</td>'.
-                        '<td>'.$c-> mobile.'</td>'.
-                        '<td><a href="'.route('patients.show',['id' => $c->id]).'" class="btn btn-success btn-sm">
+                        '<td >'.'GPC-'.$c->patientId.$date.'</td>'.
+                        '<td>'.$c->name.'</td>'.
+                        '<td>'.$c->age.'</td>'.
+                        '<td>'.$c->mobile.'</td>'.
+                        '<td><a href="'.route('patients.show', ['id' => $c->id]).'" class="btn btn-success btn-sm">
                                                                 <i class="fa fa-eye"></i>
                                                             </a>
-                            <a href="'.route('patients.edit',['id' => $c->id]).'" class="btn btn-warning btn-sm">
+                            <a href="'.route('patients.edit', ['id' => $c->id]).'" class="btn btn-warning btn-sm">
                                                                 <i class="fa fa-pencil"></i>
                                                             </a></td>'.
                         '</tr>';
                 }
-            }else{
+            } else {
                 $Output .= '<tr>'.
                     '<td>No Record Found</td>'.
                     '</tr>';
             }
+
             return Response($Output);
 
         }
     }
 
-public function searchP(Request $request)
-{
-    $branchIds = loggedUser()->branches->pluck('id')->toArray();
+    public function searchP(Request $request)
+    {
+        $user = loggedUser();
+        $branchIds = $user->branches->pluck('id')->toArray();
 
-    $patients = Patient::whereHas('branches', function ($q) use ($branchIds) {
-        $q->whereIn('branches.id', $branchIds);
-    })
-    ->when($request->type == 1, function ($q) use ($request) {
-        $q->where('name', 'LIKE', '%' . $request->search . '%');
-    })
-    ->when($request->type == 2, function ($q) use ($request) {
-        $q->where(function ($sub) use ($request) {
-            $sub->where('phone', $request->search)
-                ->orWhere('mobile', $request->search);
-        });
-    })
-    ->when($request->type != 1 && $request->type != 2, function ($q) use ($request) {
-        $q->where('patientId', $request->search);
-    })
-    ->get();
+        $patients = Patient::whereHas('branches', function ($q) use ($branchIds) {
+            $q->whereIn('branches.id', $branchIds);
+        })
+            ->when($request->type == 1, function ($q) use ($request) {
+                $q->where('name', 'LIKE', '%'.$request->search.'%');
+            })
+            ->when($request->type == 2, function ($q) use ($request) {
+                $q->where(function ($sub) use ($request) {
+                    $sub->where('phone', $request->search)
+                        ->orWhere('mobile', $request->search);
+                });
+            })
+            ->when($request->type != 1 && $request->type != 2, function ($q) use ($request) {
+                $q->where('patientId', $request->search);
+            });
 
-    return view('patients.results', compact('patients'));
-}
+        // Role-based filter for HomePhysiotherapist
+        if ($user->isHomePhysiotherapist()) {
+            $patients->where('created_by', $user->id);
+        }
 
-    public function hidePatient(Request $request, Patient $patient){
+        $patients = $patients->get();
+
+        return view('patients.results', compact('patients'));
+    }
+
+    public function hidePatient(Request $request, Patient $patient)
+    {
 
         $patient = Patient::find($patient->id);
         $patient->status = $request->status;
         $patient->save();
-        if ($request->ajax()){
-            return ['success'=>1, 'msg'=>trans('Settings were saved successfully')];
+        if ($request->ajax()) {
+            return ['success' => 1, 'msg' => trans('Settings were saved successfully')];
         }
+
         return redirect()->back();
     }
 
-    public function hiddenPatients(){
+    public function hiddenPatients()
+    {
         $user = loggedUser();
-        $patients = Patient::where('status',1);
+        $patients = Patient::where('status', 1);
         if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
             $patients = $patients->where('created_by', $user->id);
         }
         $patients = $patients->latest()->paginate(10);
-        return view('patients.index',compact('patients'));
+
+        return view('patients.index', compact('patients'));
     }
 
-    public function searchPatientByReg(){
+    public function searchPatientByReg()
+    {
         return view('patients.searchPatientByReg');
     }
 
-public function searchPatientByRegDate(Request $request){
+    public function searchPatientByRegDate(Request $request)
+    {
         $from = $request['from'];
         $upto = $request['upto'];
-        $from = date("Y-m-d", strtotime($from) );
-        $start =Carbon::createFromFormat('Y-m-d H',$from.' 00');
-        $upto = date("Y-m-d", strtotime($upto) );
-        $to =Carbon::createFromFormat('Y-m-d H',$upto.' 23');
+        $from = date('Y-m-d', strtotime($from));
+        $start = Carbon::createFromFormat('Y-m-d H', $from.' 00');
+        $upto = date('Y-m-d', strtotime($upto));
+        $to = Carbon::createFromFormat('Y-m-d H', $upto.' 23');
         $brachesId = loggedUser()->branches->pluck('id')->toArray();
         $user = loggedUser();
 
-        $patients = Patient::whereBetween('date', [$start, $to])->whereHas('branches', function ($q)use($brachesId) {
+        $patients = Patient::whereBetween('date', [$start, $to])->whereHas('branches', function ($q) use ($brachesId) {
             $q->whereIn('branches.id', $brachesId);
         });
 
@@ -392,49 +419,53 @@ public function searchPatientByRegDate(Request $request){
         }
 
         $patients = $patients->get();
-        return view('patients.searchPatientByRegDate',compact('patients'));
+
+        return view('patients.searchPatientByRegDate', compact('patients'));
     }
 
-    Public function todaysPatient(){
+    public function todaysPatient()
+    {
         $from = Carbon::now();
-        $from = date("Y-m-d", strtotime($from) );
-        $start =Carbon::createFromFormat('Y-m-d H',$from.' 00');
-        $upto = date("Y-m-d", strtotime(Carbon::now()) );
-        $to =Carbon::createFromFormat('Y-m-d H',$upto.' 23');
+        $from = date('Y-m-d', strtotime($from));
+        $start = Carbon::createFromFormat('Y-m-d H', $from.' 00');
+        $upto = date('Y-m-d', strtotime(Carbon::now()));
+        $to = Carbon::createFromFormat('Y-m-d H', $upto.' 23');
 
         $Schedule = Schedule::whereBetween('attendedAt', [$start, $to])->orderBy('attendedAt', 'asc')->get();
 
-        return view('patients.todaysPatient',compact('Schedule'));
+        return view('patients.todaysPatient', compact('Schedule'));
     }
 
     public function getChangeBranch($id)
     {
         $patient = Patient::findOrfail($id);
         $branches = Branch::all();
-        return view('patients.changeBranch',compact('patient','branches'));
+
+        return view('patients.changeBranch', compact('patient', 'branches'));
 
     }
 
-  	public function changeBranch(Request $request){
+    public function changeBranch(Request $request)
+    {
         $patient = Patient::findOrFail($request->patient_id);
         $branch = Branch::findOrFail($request->branch_id);
-        if($request->type == 1){
+        if ($request->type == 1) {
             $patient->branches()->sync($branch->id);
 
-        }elseif ($request->type == 2 ){
+        } elseif ($request->type == 2) {
             $patient->branches()->sync($branch->id);
-            $payment = Payment::where('patient_id',$patient->id)->where('active',1)->first();
-            Payment::where('id',$payment->id)->update(['branch_id' => $branch->id]);
-            Collection::where('patient_id',$patient->id)->where('payment_id',$payment->id)->update(['branch_id' => $branch->id]);
-            Schedule::where('patient_id',$patient->id)->where('payment_id',$payment->id)->update(['branch_id' => $branch->id]);
-        }elseif ($request->type == 3 ){
+            $payment = Payment::where('patient_id', $patient->id)->where('active', 1)->first();
+            Payment::where('id', $payment->id)->update(['branch_id' => $branch->id]);
+            Collection::where('patient_id', $patient->id)->where('payment_id', $payment->id)->update(['branch_id' => $branch->id]);
+            Schedule::where('patient_id', $patient->id)->where('payment_id', $payment->id)->update(['branch_id' => $branch->id]);
+        } elseif ($request->type == 3) {
             $patient->branches()->sync($branch->id);
-            Payment::where('patient_id',$patient->id)->update(['branch_id' => $branch->id]);
-            Collection::where('patient_id',$patient->id)->update(['branch_id' => $branch->id]);
-            Schedule::where('patient_id',$patient->id)->update(['branch_id' => $branch->id]);
+            Payment::where('patient_id', $patient->id)->update(['branch_id' => $branch->id]);
+            Collection::where('patient_id', $patient->id)->update(['branch_id' => $branch->id]);
+            Schedule::where('patient_id', $patient->id)->update(['branch_id' => $branch->id]);
 
         }
-        return redirect()->back()->with('message','Done Successfully');
-    }
 
+        return redirect()->back()->with('message', 'Done Successfully');
+    }
 }

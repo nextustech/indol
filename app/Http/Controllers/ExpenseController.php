@@ -35,10 +35,16 @@ class ExpenseController extends Controller
      */
     public function index()
     {
-        $user = Auth::user();
+        $user = loggedUser();
         $brachesId = loggedUser()->branches->pluck('id')->toArray();
 
-        $expenses = Expense::whereIn('branch_id', $brachesId)->latest()->paginate(25);
+        $query = Expense::whereIn('branch_id', $brachesId);
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $expenses = $query->latest()->paginate(25);
         return view('expenses.index',compact('expenses'));
 
     }
@@ -124,7 +130,7 @@ class ExpenseController extends Controller
         //
     }
 
-    /**
+/**
      * Show the form for editing the specified resource.
      *
      * @param  \App\Expense  $expense
@@ -132,9 +138,17 @@ class ExpenseController extends Controller
      */
     public function edit(Expense $expense)
     {
+        $user = loggedUser();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            if ($expense->user_id !== $user->id) {
+                abort(403, 'Unauthorized access');
+            }
+        }
+
         $ecats = Ecat::all();
         $branches = loggedUser()->branches;
-      	$modes = Mode::all();
+       	$modes = Mode::all();
         return view('expenses.edit',compact('expense','ecats','branches','modes'));
 
 
@@ -149,11 +163,19 @@ class ExpenseController extends Controller
      */
     public function update(Request $request, Expense $expense)
     {
+        $user = loggedUser();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            if ($expense->user_id !== $user->id) {
+                abort(403, 'Unauthorized access');
+            }
+        }
+
         if($request['date']!= null){
             $dt = date("Y-m-d", strtotime($request['date']) );
             // $dt = $dt->toDateTimeString();
             $request['date'] = Carbon::createFromFormat('Y-m-d H',$dt.' 00');
-            //return  $request['date'] ;
+            //return  $request->date ;
             $date = Carbon::createFromFormat('Y-m-d H',$dt.' 00');
             //'Y-m-d H', $dtFr.' 22'
             // return $date;
@@ -175,6 +197,14 @@ class ExpenseController extends Controller
      */
     public function destroy(Expense $expense)
     {
+        $user = loggedUser();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            if ($expense->user_id !== $user->id) {
+                abort(403, 'Unauthorized access');
+            }
+        }
+
         Expense::destroy($expense->id);
         return redirect()->route('expenses.index')->with('message','Deleted Successfully');
 
@@ -183,8 +213,6 @@ class ExpenseController extends Controller
     public function expData(Request $request)
     {
         $query = $request->all();
-        // return $request->all();
-        $branch_id = $request['branch_id'];
         $from = $request['from'];
         $upto = $request['upto'];
         $from = date("Y-m-d", strtotime($from) );
@@ -192,13 +220,8 @@ class ExpenseController extends Controller
         $upto = date("Y-m-d", strtotime($upto) );
 
         $to =Carbon::createFromFormat('Y-m-d H',$upto.' 23');
-//        if($branch_id){
-//            $expenses = Expense::where('branch_id',$branch_id)->whereBetween('date', [$start, $to])->latest()->paginate(20);
-//        }else{
-//            $expenses = Expense::whereBetween('date', [$start, $to])->latest()->paginate(20);
-//        }
-
-        //  $expenses = Expense::whereBetween('date', [$start, $to])->latest()->paginate(20);
+        $user = loggedUser();
+        $isHomePhysio = $user->roles->pluck('name')->first() === 'HomePhysiotherapist';
 
         $data = DB::table('expenses');
         if( $request->branch_id){
@@ -211,7 +234,9 @@ class ExpenseController extends Controller
             $data = $data->whereBetween('date', [$start,$to]);
         }
 
-
+        if($isHomePhysio){
+            $data = $data->where('user_id', $user->id);
+        }
 
         if($request->has('pagination')){
             $pagination = $request->pagination;
@@ -219,8 +244,7 @@ class ExpenseController extends Controller
             $pagination = 25;
         }
 
-        $expenses = $data->paginate($pagination);
-        // return $expenses;
+$expenses = $data->paginate($pagination);
         return view('expenses.index',compact('expenses','query'));
 
     }
@@ -232,9 +256,10 @@ class ExpenseController extends Controller
         $branches = Branch::whereIn('id',$branchIds)->get();
         $modes = Mode::all();
         $ecats = Ecat::all();
+        $user = loggedUser();
 
         $query = Expense::query();
-        
+
         $branchFilter = $request->branchFilter ;
         $ecatFilter = $request->ecatFilter;
         $modeFilter = $request->modeFilter;
@@ -258,7 +283,7 @@ class ExpenseController extends Controller
                 $q->where('id',$request->modeFilter);
             });
         }
-        switch($dateFilter){
+switch($dateFilter){
             case 'today':
                 $query->whereDate('created_at',Carbon::today());
                 break;
@@ -284,6 +309,11 @@ class ExpenseController extends Controller
                 $query->whereYear('created_at',Carbon::now()->subYear()->year);
                 break;
         }
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
         $totalAmount = $query->sum('amount');
         $expenses = $query->latest()->paginate(100);
         // $expenses = $query->get();
@@ -292,14 +322,15 @@ class ExpenseController extends Controller
         return view('reports.expenseReports',compact('expenses','branches','modes','ecats','totalAmount','branchFilter','ecatFilter','modeFilter','dateFilter'));
 
     }
-  
-  	 public function expenseReportCustom(Request $request)
-    {
-        // return $request->all();
+
+   	 public function expenseReportCustom(Request $request)
+     {
+         // return $request->all();
         $branchIds = loggedUser()->branches->pluck('id')->toArray();
         $branches = Branch::whereIn('id',$branchIds)->get();
         $modes = Mode::all();
         $ecats = Ecat::all();
+        $user = loggedUser();
 
         $query = Expense::query();
         $dateFilter = $request->dateFilter;
@@ -334,6 +365,11 @@ class ExpenseController extends Controller
                 ->whereDate('created_at','<=',Carbon::today());
 
         }
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
         $totalAmount = $query->sum('amount');
         $expenses = $query->latest()->paginate(100);
         // $expenses = $query->get();

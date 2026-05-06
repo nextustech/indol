@@ -141,7 +141,15 @@ class ScheduleController extends Controller
      */
     public function edit(Schedule $schedule)
     {
-        //
+        $user = loggedUser();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            if ($schedule->user_id !== $user->id) {
+                abort(403, 'Unauthorized access');
+            }
+        }
+
+        return view('schedules.edit', compact('schedule'));
     }
 
     /**
@@ -153,6 +161,13 @@ class ScheduleController extends Controller
      */
     public function update(Request $request, Schedule $schedule)
     {
+        $user = loggedUser();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            if ($schedule->user_id !== $user->id) {
+                abort(403, 'Unauthorized access');
+            }
+        }
 
         if(!$request['attendedAt']){
             if($request['date']){
@@ -351,6 +366,14 @@ public function makeAbsent(Request $request, Schedule $schedule)
      */
     public function destroy(Schedule $schedule)
     {
+        $user = loggedUser();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            if ($schedule->user_id !== $user->id) {
+                abort(403, 'Unauthorized access');
+            }
+        }
+
         Schedule::destroy($schedule->id);
         return redirect()->back();
     }
@@ -395,15 +418,21 @@ public function makeAbsent(Request $request, Schedule $schedule)
         $upto = date("Y-m-d", strtotime($upto) );
 
         $to =Carbon::createFromFormat('Y-m-d H',$upto.' 23');
+        $user = loggedUser();
 
-        // return $start.'<br>'.$to;
-        $DailyPatients = Schedule::whereBetween('attendedAt', [$start, $to])->orderBy('attendedAt', 'desc')->get();
+        $query = Schedule::whereBetween('attendedAt', [$start, $to]);
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $DailyPatients = $query->orderBy('attendedAt', 'desc')->get();
         return view('patients.dailyPatient',compact('DailyPatients'));
 
     }
     public function todayPatients(){
-        $user = Auth::user();
-      $brachesId = loggedUser()->branches->pluck('id')->toArray();
+        $user = loggedUser();
+        $brachesId = loggedUser()->branches->pluck('id')->toArray();
         $time = Carbon::now();
         $time = $time->toDateString();
         $start = Carbon::createFromFormat('Y-m-d H', $time.' 00')->toDateTimeString();
@@ -413,18 +442,13 @@ public function makeAbsent(Request $request, Schedule $schedule)
 
         $to = Carbon::createFromFormat('Y-m-d H:i', $dt.' 23:59')->toDateTimeString();
 
-        //return $start.'<br>'.$to;
-//        if($user->role == 1 && $user->super == Null){
-//            $DailyPatients = Schedule::where('branch_id',$user->branch_id)->whereBetween('sittingDate', [$start, $to])->orderBy('attendedAt', 'asc')->get();
-//
-//        }elseif($user->role == 1 && $user->super == Null){
-//            $DailyPatients = Schedule::where('branch_id',$user->branch_id)->whereBetween('sittingDate', [$start, $to])->orderBy('attendedAt', 'asc')->get();
-//
-//        }elseif($user->super ==1){
-//            $DailyPatients = Schedule::where('branch_id',$user->branch_id)->whereBetween('sittingDate', [$start, $to])->orderBy('attendedAt', 'asc')->get();
-//
-//        }
-        $DailyPatients = Schedule::whereIn('branch_id',$brachesId)->whereBetween('sittingDate', [$start, $to])->orderBy('attendedAt', 'asc')->get();
+        $query = Schedule::whereIn('branch_id',$brachesId)->whereBetween('sittingDate', [$start, $to]);
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $DailyPatients = $query->orderBy('attendedAt', 'asc')->get();
 
         return view('reports.todaysPatients',compact('DailyPatients'));
 
