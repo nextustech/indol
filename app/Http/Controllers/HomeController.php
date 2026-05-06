@@ -51,8 +51,8 @@ class HomeController extends Controller
         }
 
         // ✅ Today range
-        $start = now()->startOfDay();
-        $end = now()->endOfDay();
+        $start = Carbon::now()->startOfDay();
+        $end = Carbon::now()->endOfDay();
 
         // ✅ Patients
         $newPatientsQuery = Patient::whereBetween('created_at', [$start, $end])
@@ -121,6 +121,18 @@ class HomeController extends Controller
                 return $mode;
             });
 
+    // ✅ Today's New Patients List (for display)
+        $newPatientsListQuery = Patient::whereBetween('created_at', [$start, $end])
+            ->whereHas('branches', fn ($q) => $q->whereIn('branches.id', $branchIds));
+
+        if ($isHomePhysio) {
+            $newPatientsListQuery->where('created_by', $user->id);
+        }
+
+        $newPatientsList = $newPatientsListQuery
+            ->latest()
+            ->limit(20)
+            ->get();
         // ✅ Financial Year
         $year = now()->year;
 
@@ -201,18 +213,7 @@ class HomeController extends Controller
             ->limit(50)
             ->get();
 
-        // ✅ Today's New Patients List (for display)
-        $newPatientsListQuery = Patient::whereBetween('created_at', [$start, $end])
-            ->whereHas('branches', fn ($q) => $q->whereIn('branches.id', $branchIds));
 
-        if ($isHomePhysio) {
-            $newPatientsListQuery->where('created_by', $user->id);
-        }
-
-        $newPatientsList = $newPatientsListQuery
-            ->latest()
-            ->limit(20)
-            ->get();
 
         return view('home', compact(
             'branches',

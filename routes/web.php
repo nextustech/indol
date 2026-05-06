@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -15,8 +16,6 @@ use Illuminate\Support\Facades\Route;
 |
 */
 use UniSharp\LaravelFilemanager\Lfm;
-
-
 
 
 
@@ -52,14 +51,14 @@ Route::group(['middleware' => 'isAdmin'], function () {
 });
 
 Route::group(['middleware' => 'auth'], function () {
-    
+
     // Protect admin-only resources from HomePhysiotherapist
     Route::middleware(['homePhysio'])->group(function () {
         Route::resource('branches', App\Http\Controllers\BranchController::class)->except(['index', 'show']);
         Route::resource('modes', App\Http\Controllers\ModeController::class)->except(['index', 'show']);
         Route::resource('servicetypes', App\Http\Controllers\ServiceTypeController::class)->except(['index', 'show']);
     });
-    
+
     // Allowed for all authenticated users including HomePhysiotherapist
     Route::get('/settings', [App\Http\Controllers\OptionController::class, 'GeneralSettings'])->name('settings');
     Route::get('home-page', [App\Http\Controllers\OptionController::class, 'homePage'])->name('home-page');
