@@ -107,7 +107,8 @@
                     <div class="col-lg-6 col-md-6">
                         <!-- Footer Copyright Start -->
                         <div class="footer-copyright-text">
-                            <p>Copyright 2024 Physiocare. All Rights Reserved.</p>
+                            <p>Copyright 2026 . Designed and Developed by <a href="https://www.nextus.in/">Nextus Technologies</a>
+                            </p>
                         </div>
                         <!-- Footer Copyright End -->
                     </div>

@@ -40,7 +40,9 @@
                         <!-- Contact Info Content Start -->
                         <div class="contact-info-content">
                             <h3>location</h3>
-                            <p>24/11 Robert Road , New York , USA</p>
+                            <p>Dayal Bagh, Agra </p>
+                            <p>Avash Vikash, Agra </p>
+                            <p>Hariparvat, Agra </p>
                         </div>
                         <!-- Contact Info Content End -->
                     </div>
@@ -59,8 +61,8 @@
                         <!-- Contact Info Content Start -->
                         <div class="contact-info-content">
                             <h3>email</h3>
-                            <p>info@indolia.com</p>
-                            <p>contact@indolia.com</p>
+                            <p>dr.indoliaphysio@gmail.com</p>
+                            <p>info@drindoliaphysio.com</p>
                         </div>
                         <!-- Contact Info Content End -->
                     </div>
@@ -79,8 +81,8 @@
                         <!-- Contact Info Content Start -->
                         <div class="contact-info-content">
                             <h3>phone</h3>
-                            <p>(+01) 789 854 856</p>
-                            <p>(+02) 895 867 781</p>
+                            <p>+91 9760799933</p>
+                            <p>+91 9012107107</p>
                         </div>
                         <!-- Contact Info Content End -->
                     </div>
@@ -99,8 +101,8 @@
                         <!-- Contact Info Content Start -->
                         <div class="contact-info-content">
                             <h3>working hours</h3>
-                            <p>Mon to Fri : 10:00 To 6:00</p>
-                            <p>Sat : 10:00AM To 3:00PM</p>
+                            <p>Mon to Sat : 9:00 To 6:00</p>
+                            <p>Sun : 9:00AM To 1:00PM</p>
                         </div>
                         <!-- Contact Info Content End -->
                     </div>
