@@ -34,7 +34,7 @@ class AppServiceProvider extends ServiceProvider
 
             $GLOBALS['is_db_connected'] = true;
 
-            if (auth()->check()) {
+           // if (auth()->check()) {
                 $optionsQuery = Option::all('option_key', 'option_value');
                 $options = [];
                 if ($optionsQuery->count()) {
@@ -43,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
                     }
                 }
                 $GLOBALS['options'] = $options;
-            }
+          //  }
 
             /**
              * Set dynamic configuration for third party services
