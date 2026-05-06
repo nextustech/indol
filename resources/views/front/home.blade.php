@@ -255,7 +255,7 @@
                                         </figure>
                                     </div>
                                     <div class="doctor-info-content">
-                                        <h3>dr. Jugal Indolia</h3>
+                                        <h3>dr. J. S. Indolia</h3>
                                         <p>Senior Physiotherapist</p>
                                     </div>
                                 </div>
