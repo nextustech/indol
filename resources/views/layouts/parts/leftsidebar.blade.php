@@ -244,6 +244,7 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
 
                     </ul>
                 </li>
+                @role('owner|Super-Admin|DIRECTOR')
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-user"></i>
@@ -292,6 +293,8 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
 
                     </ul>
                 </li>
+                @endrole
+                @if(!$isHomePhysio)
                 <li class="nav-item">
                     <a href="{{ route('discontinued') }}" class="nav-link">
                         <i class="nav-icon fas fa-user"></i>
@@ -326,6 +329,7 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
 
                     </ul>
                 </li>
+                @endif
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-user"></i>
@@ -389,6 +393,7 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                     </a>
 
                 </li>
+                @if(!$isHomePhysio)
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-user"></i>
@@ -398,7 +403,7 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
-<li class="nav-item">
+                        <li class="nav-item">
                             <a href="{{ route('admin.appointment-types.index') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Appointment Types</p>
@@ -466,6 +471,7 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                         </li>
                     </ul>
                 </li>
+
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-envelope"></i>
@@ -501,7 +507,7 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
 
                     </ul>
                 </li>
-
+                @endif
                 <li class="nav-item">
                     <a href="{{ route('logout') }}" class="nav-link" onclick="event.preventDefault();
                                                  document.getElementById('logout-form').submit();">
