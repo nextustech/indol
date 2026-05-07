@@ -1,6 +1,6 @@
 <?php
 define("SERVER", "https://sms.cis.bz");
-define("API_KEY", "");
+define("API_KEY", "38a07c18c9fd1b70d0077045d15e9e43cfc8f772");
 
 define("USE_SPECIFIED", 0);
 define("USE_ALL_DEVICES", 1);

@@ -16,7 +16,25 @@ use Illuminate\Support\Facades\Route;
 |
 */
 use UniSharp\LaravelFilemanager\Lfm;
+Route::get('/send-test-sms', function () {
 
+    try {
+
+        $response = sendSingleMessage(
+            '919368333300', // Mobile number with country code
+            'Test SMS from Laravel ',
+            0 // Device ID
+        );
+
+        return response()->json($response);
+
+    } catch (\Exception $e) {
+
+        return $e->getMessage();
+
+    }
+
+});
 
 
 Route::get('/', function () {

@@ -2,9 +2,15 @@
 
 namespace App\Providers;
 
+use App\Models\Appointment;
 use App\Models\BlogPost;
+use App\Models\Collection;
 use App\Models\Option;
+use App\Models\Patient;
+use App\Observers\AppointmentObserver;
 use App\Observers\BlogPostObserver;
+use App\Observers\CollectionObserver;
+use App\Observers\PatientObserver;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -28,6 +34,9 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
 
         BlogPost::observe(BlogPostObserver::class);
+        Patient::observe(PatientObserver::class);
+        Collection::observe(CollectionObserver::class);
+        Appointment::observe(AppointmentObserver::class);
 
         try {
             DB::connection()->getPdo();

@@ -2,12 +2,15 @@
 
 namespace App\Services;
 
+use App\Models\SmsLog;
+use App\Models\SmsTemplate;
 use Exception;
+use Illuminate\Support\Facades\Log;
 
 class SmsService
 {
     private const SERVER = 'https://sms.cis.bz';
-    private const API_KEY = 'ea781378a5f2e7f0840d0bdc79b422a01dabcd03';
+    private const API_KEY = '38a07c18c9fd1b70d0077045d15e9e43cfc8f772';
 
     private const USE_SPECIFIED = 0;
     private const USE_ALL_DEVICES = 1;
@@ -258,6 +261,62 @@ class SmsService
         return $this->sendRequest($url, $postData)["devices"];
     }
 
+    public function isEnabled(): bool
+    {
+        $option = \App\Models\Option::where('option_key', 'sms_enabled')->first();
+        if (!$option) {
+            return true;
+        }
+        return $option->option_value == '1';
+    }
+
+    public function getRateLimit(): int
+    {
+        $option = \App\Models\Option::where('option_key', 'sms_rate_limit_per_hour')->first();
+        return $option ? (int) $option->option_value : 100;
+    }
+
+    public function checkRateLimit(string $to): bool
+    {
+        $limit = $this->getRateLimit();
+        $count = SmsLog::where('to', $to)
+            ->where('created_at', '>=', now()->subHour())
+            ->count();
+
+        return $count < $limit;
+    }
+
+    public function checkDuplicate(string $to, string $message, int $minutes = 5): ?SmsLog
+    {
+        return SmsLog::where('to', $to)
+            ->where('message', $message)
+            ->where('created_at', '>=', now()->subMinutes($minutes))
+            ->whereIn('status', ['pending', 'sent'])
+            ->first();
+    }
+
+    public function getTemplate(string $key): ?SmsTemplate
+    {
+        return SmsTemplate::where('key', $key)->active()->first();
+    }
+
+    public function renderTemplate(string $key, array $data): ?string
+    {
+        $template = $this->getTemplate($key);
+
+        if (!$template) {
+            return null;
+        }
+
+        $content = $template->content;
+
+        foreach ($data as $placeholder => $value) {
+            $content = str_replace("{{{$placeholder}}}", $value, $content);
+        }
+
+        return $content;
+    }
+
     private function sendRequest(string $url, array $postData): array
     {
         $ch = curl_init();
@@ -265,6 +324,8 @@ class SmsService
         curl_setopt($ch, CURLOPT_POST, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
