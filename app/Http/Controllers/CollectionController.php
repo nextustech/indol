@@ -8,6 +8,7 @@ use App\Models\Mode;
 use App\Models\Patient;
 use App\Models\Payment;
 use App\Models\ServiceType;
+use App\Traits\SmsControl;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 
 class CollectionController extends Controller
 {
+    use SmsControl;
     public function __construct()
     {
         $this->middleware('permission:create-Collection', ['only'=>['crd']]);
@@ -152,9 +154,10 @@ class CollectionController extends Controller
         $this->validate($request, Collection::rules(), Collection::messages());
 
         $request['user_id'] = Auth::id();
-      // return $request->all();
 
-        if(Collection::create($request->all())){
+        app('App\Services\SmsToggle')->setRequest($request);
+
+        if(Collection::create($request->except('send_sms_collection', 'send_sms_patient'))){
            return redirect()->route('patients.show',$request->patient_id);
         }
 

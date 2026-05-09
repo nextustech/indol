@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Events\SmsSendingEvent;
 use App\Models\Patient;
+use App\Services\SmsToggle;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -11,6 +12,11 @@ class PatientObserver
 {
     public function created(Patient $patient): void
     {
+        if (!SmsToggle::shouldSendPatientSms()) {
+            Log::info("Patient SMS disabled by user", ['patient_id' => $patient->id]);
+            return;
+        }
+
         try {
             $phone = $patient->mobile ?: $patient->phone;
 
@@ -45,7 +51,6 @@ class PatientObserver
 
     public function updated(Patient $patient): void
     {
-        // Future: SMS on important updates
     }
 
     private function getSetting(string $key, $default = null)

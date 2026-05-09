@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Events\SmsSendingEvent;
 use App\Models\Collection;
+use App\Services\SmsToggle;
 use Exception;
 use Illuminate\Support\Facades\Log;
 
@@ -11,6 +12,11 @@ class CollectionObserver
 {
     public function created(Collection $collection): void
     {
+        if (!SmsToggle::shouldSendCollectionSms()) {
+            Log::info("Collection SMS disabled by user", ['collection_id' => $collection->id]);
+            return;
+        }
+
         try {
             $patient = $collection->patient;
 
@@ -53,7 +59,6 @@ class CollectionObserver
 
     public function updated(Collection $collection): void
     {
-        // Future: SMS on collection updates
     }
 
     private function getSetting(string $key, $default = null)

@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Schedule;
 use App\Models\User;
 use App\Models\ServiceType;
+use App\Traits\SmsControl;
 use Carbon\Carbon;
 use App\Services\SittingScheduler;
 use Illuminate\Http\Request;
@@ -16,6 +17,8 @@ use Illuminate\Support\Facades\Auth;
 
 class OpdController extends Controller
 {
+    use SmsControl;
+
       public function __construct()
     {
         $this->middleware('permission:Opd-Registration', ['only'=>['create']]);
@@ -66,6 +69,7 @@ class OpdController extends Controller
      */
     public function store(Request $request)
     {
+        \App\Services\SmsToggle::setRequest($request);
 
        // return $request->all();
         if($request['dob']!= null){
@@ -165,8 +169,9 @@ class OpdController extends Controller
         $days = $request['days'];
         $userId = Auth::id();
         $type = $request['service_type_id'];
-        $patientData = $request->except('branch_id');
+        $patientData = $request->except('branch_id', 'send_sms_patient', 'send_sms_collection');
         $patientData['created_by'] = Auth::id();
+
         $patient = Patient::create($patientData);
         $branch_id = $request['branch_id'];
         $patient->branches()->attach($branch_id);
@@ -298,6 +303,8 @@ class OpdController extends Controller
      * Display the specified resource.
      */
     public function old(Request $request){
+
+        app('App\Services\SmsToggle')->setRequest($request);
 
         $userId = Auth::id();
         if($request['paid'] == 1){

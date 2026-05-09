@@ -101,6 +101,16 @@
                                                 </div>
 
                                             </div>
+                                            <div class="row mt-3">
+                                                <div class="col-md-6">
+                                                    <div class="custom-controls-stacked">
+                                                        <label class="custom-control custom-checkbox">
+                                                            <input type="checkbox" class="custom-control-input" name="send_sms_collection" value="1" checked>
+                                                            <span class="custom-control-label">Send Payment Collection SMS</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                             <div class="card-footer text-right">
                                                 <button type="submit" class="btn btn-primary">Deposit Payment</button>
                                             </div>

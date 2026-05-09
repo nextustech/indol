@@ -73,10 +73,29 @@
                     <label>Sunday Sessions</label>
                     <input type="number" class="form-control" name="sunday_sittings" value="{{ old('sunday_sittings', 0) }}" min="0">
                 </div>
-            </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-6">
+        <div class="custom-controls-stacked">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="send_sms_patient" value="1" checked>
+                <span class="custom-control-label">Send Patient Registration SMS</span>
+            </label>
         </div>
+    </div>
+    <div class="col-md-6">
+        <div class="custom-controls-stacked">
+            <label class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" name="send_sms_collection" value="1" checked>
+                <span class="custom-control-label">Send Payment Collection SMS</span>
+            </label>
+        </div>
+    </div>
+</div>
 
     </div>
+</div>
     <div class="col-md-6">
 
             <?php
