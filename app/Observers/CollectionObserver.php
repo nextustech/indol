@@ -36,6 +36,11 @@ class CollectionObserver
                 return;
             }
 
+            $totalPaid = Collection::where('patient_id', $patient->id)
+            ->sum('amount');
+
+            $totalAmount = $patient->payments()->sum('amount');
+            $balance = $totalAmount - $totalPaid;
             $clinicName = $this->getSetting('clinic_name', 'Our Clinic');
 
             event(new SmsSendingEvent(
@@ -44,7 +49,7 @@ class CollectionObserver
                 [
                     'patient_name' => $patient->name,
                     'amount' => number_format($collection->amount, 0),
-                    'balance' => number_format($collection->amount, 0),
+                    'balance' => number_format($balance, 0),
                     'clinic_name' => $clinicName
                 ],
                 $collection

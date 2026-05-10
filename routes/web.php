@@ -41,6 +41,11 @@ Route::get('/', function () {
     return view('front.home');
 });
 
+Route::get('/br', function () {
+        $patient = \App\Models\Patient::first();
+     return $patient->branches->pluck('branchName')->implode(', ');
+});
+
 Route::get('/about-us', function () {
     return view('front.about');
 });

@@ -172,6 +172,8 @@ class OpdController extends Controller
         $patientData = $request->except('branch_id', 'send_sms_patient', 'send_sms_collection');
         $patientData['created_by'] = Auth::id();
 
+        \App\Services\SmsToggle::setBranchId($request['branch_id']);
+
         $patient = Patient::create($patientData);
         $branch_id = $request['branch_id'];
         $patient->branches()->attach($branch_id);
@@ -304,7 +306,14 @@ class OpdController extends Controller
      */
     public function old(Request $request){
 
-        app('App\Services\SmsToggle')->setRequest($request);
+        \App\Services\SmsToggle::setRequest($request);
+
+        // For existing patients, branch comes from existing payment
+        $existingPatient = Patient::findOrFail($request['patient_id']);
+        $existingPayment = Payment::where('patient_id', $existingPatient->id)->first();
+        if ($existingPayment && $existingPayment->branch_id) {
+            \App\Services\SmsToggle::setBranchId($existingPayment->branch_id);
+        }
 
         $userId = Auth::id();
         if($request['paid'] == 1){
