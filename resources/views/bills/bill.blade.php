@@ -37,7 +37,7 @@
                                 $date = new DateTime($invoice->date);
                                 ?>
 
-                                <h3 class="card-title">#INV-WNR-{{ $invoice->invoiceNo.$date->format('m/y') }}</h3>
+                                <h3 class="card-title">#INV-{{ $invoice->branch->branchCode }}-{{ $invoice->invoiceNo.$date->format('m/y') }}</h3>
                             </div>
 
                             <div class="card-body">
@@ -46,7 +46,7 @@
                                         <span></span><br>
                                       @if($invoice->branch->id == 3 )
                                       <strong>MSME : UDYAM-RJ-06-0032661</strong>
-                                      
+
                                       @else
                                         <strong>MSME : UP01D044850</strong>
                                       @endif
