@@ -430,28 +430,62 @@ public function makeAbsent(Request $request, Schedule $schedule)
         return view('patients.dailyPatient',compact('DailyPatients'));
 
     }
-    public function todayPatients(){
+    public function todayPatients(Request $request)
+    {
         $user = loggedUser();
-        $brachesId = loggedUser()->branches->pluck('id')->toArray();
+        $branchesId = loggedUser()->branches->pluck('id')->toArray();
+
+        // Get all branches accessible to user for filter dropdown
+        $branches = Branch::whereIn('id', $branchesId)
+            ->orderBy('branchName')
+            ->get();
+
         $time = Carbon::now();
         $time = $time->toDateString();
-        $start = Carbon::createFromFormat('Y-m-d H', $time.' 00')->toDateTimeString();
+        $start = Carbon::createFromFormat('Y-m-d H', $time . ' 00')->toDateTimeString();
 
         $dt = Carbon::now();
         $dt = $dt->toDateString();
 
-        $to = Carbon::createFromFormat('Y-m-d H:i', $dt.' 23:59')->toDateTimeString();
+        $to = Carbon::createFromFormat('Y-m-d H:i', $dt . ' 23:59')->toDateTimeString();
 
-        $query = Schedule::whereIn('branch_id',$brachesId)->whereBetween('sittingDate', [$start, $to]);
+        // Base query with eager loading for performance
+        $query = Schedule::with([
+            'patient.branches',
+            'payment.collections',
+            'branch'
+        ])
+            ->whereIn('branch_id', $branchesId)
+            ->whereBetween('sittingDate', [$start, $to]);
 
+        // Branch filter - if selected, show only that branch's schedules
+        $selectedBranchId = $request->filled('branch_id') ? (int) $request->branch_id : null;
+
+        if ($selectedBranchId && in_array($selectedBranchId, $branchesId)) {
+            $query->where('branch_id', $selectedBranchId);
+        }
+
+        // Search filter - search by patient name or mobile
+        $search = $request->filled('search') ? trim($request->search) : null;
+
+        if ($search) {
+            $query->whereHas('patient', function ($q) use ($search) {
+                $q->where(function ($q2) use ($search) {
+                    $q2->where('name', 'LIKE', '%' . $search . '%')
+                        ->orWhere('mobile', 'LIKE', '%' . $search . '%')
+                        ->orWhere('phone', 'LIKE', '%' . $search . '%');
+                });
+            });
+        }
+
+        // Role-based filter for HomePhysiotherapist
         if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
             $query->where('user_id', $user->id);
         }
 
         $DailyPatients = $query->orderBy('attendedAt', 'asc')->get();
 
-        return view('reports.todaysPatients',compact('DailyPatients'));
-
+        return view('reports.todaysPatients', compact('DailyPatients', 'branches', 'selectedBranchId', 'search'));
     }
 
     public function getRefundDetail($pid,$payId){

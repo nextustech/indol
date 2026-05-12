@@ -15,15 +15,23 @@ class Schedule extends Model
         'visit_order' => 'integer',
     ];
 
-    public function user(){
+    public function user()
+    {
         return $this->belongsTo(User::class)->withDefault();
     }
 
-    public function patient(){
+    public function patient()
+    {
         return $this->belongsTo(Patient::class)->withDefault();
     }
-    public function payment(){
+
+    public function payment()
+    {
         return $this->belongsTo(Payment::class);
     }
 
+    public function branch()
+    {
+        return $this->belongsTo(Branch::class, 'branch_id')->withDefault();
+    }
 }

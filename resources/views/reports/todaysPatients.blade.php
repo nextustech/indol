@@ -17,11 +17,58 @@
 
                         <div class="card card-primary card-outline">
                             <div class="card-header">
-                                <?php
-                                //$source = $s->patient->attendedAt;
-                                $date = new DateTime();
-                                ?>
-                                <h5 class="m-0">Today's Patients Schedule ( {{ $date->format('d/m/y') }} )</h5>
+                                <div class="row align-items-center">
+                                    <div class="col-md-4">
+                                        <?php
+                                        $date = new DateTime();
+                                        ?>
+                                        <h5 class="m-0">Today's Patients Schedule ( {{ $date->format('d/m/y') }} )</h5>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <!-- Search and Branch Filter Form -->
+                                        <form method="GET" action="{{ route('todayPatients') }}" class="row g-2 align-items-center justify-content-end">
+                                            <!-- Search Input -->
+                                            <div class="col-auto">
+                                                <div class="input-group input-group-sm">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text"><i class="fa fa-search"></i></span>
+                                                    </div>
+                                                    <input type="text" name="search" class="form-control" 
+                                                           placeholder="Search patient..." 
+                                                           value="{{ $search ?? '' }}"
+                                                           style="width: 180px;">
+                                                </div>
+                                            </div>
+                                            <!-- Branch Filter -->
+                                            <div class="col-auto">
+                                                <select name="branch_id" id="branch_id" class="form-control form-control-sm">
+                                                    <option value="">All Branches</option>
+                                                    @forelse($branches as $branch)
+                                                        <option value="{{ $branch->id }}" {{ $selectedBranchId == $branch->id ? 'selected' : '' }}>
+                                                            {{ $branch->branchName }}
+                                                        </option>
+                                                    @empty
+                                                        <option value="">No Branches Available</option>
+                                                    @endforelse
+                                                </select>
+                                            </div>
+                                            <!-- Submit Button -->
+                                            <div class="col-auto">
+                                                <button type="submit" class="btn btn-primary btn-sm">
+                                                    <i class="fa fa-filter"></i> Filter
+                                                </button>
+                                            </div>
+                                            <!-- Clear Button -->
+                                            @if($selectedBranchId || $search)
+                                                <div class="col-auto">
+                                                    <a href="{{ route('todayPatients') }}" class="btn btn-secondary btn-sm">
+                                                        <i class="fa fa-times"></i> Clear
+                                                    </a>
+                                                </div>
+                                            @endif
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
                             <!-- /.card-header -->
                             <div class="card-body" style="padding: .25rem; font-size:12px;">
@@ -32,6 +79,7 @@
                                         <th>Patient Name</th>
                                         <th>Mobile</th>
                                         <th>Diagnosis</th>
+                                        <th>Branch</th>
                                         <th>Status</th>
                                         <th>Payment</th>
                                         <th>Type</th>
@@ -40,7 +88,7 @@
                                     </thead>
                                     <tbody>
                                     <?php $i = 1; ?>
-                                    @foreach( $DailyPatients as $s )
+                                    @forelse($DailyPatients as $s)
                                     <tr>
                                         <td>{{ $i++ }}</td>
                                         <td>
@@ -60,18 +108,21 @@
                                         <td>{{ $s->patient->mobile }}</td>
                                         <td>{{ $s->patient->diagnosis }}</td>
                                         <td>
+                                            <span class="badge badge-info">{{ $s->branch->branchName ?? 'N/A' }}</span>
+                                        </td>
+                                        <td>
                                             @if($s->attendedAt)
-                                                <i class="fa fa-check-circle" aria-hidden="true"></i>
+                                                <i class="fa fa-check-circle text-success" aria-hidden="true"></i>
                                             @else
-                                                <i class="fa fa-times-circle" aria-hidden="true"></i>
+                                                <i class="fa fa-times-circle text-danger" aria-hidden="true"></i>
                                             @endif
                                         </td>
                                         <td>
                                             @if($s->payment)
                                                 @if($s->payment->collections->sum('amount')+$s->payment->collections->sum('discount') >= $s->payment->amount )
-                                                    Paid
+                                                    <span class="badge badge-success">Paid</span>
                                                 @else
-                                                    Not
+                                                    <span class="badge badge-warning">Pending</span>
                                                 @endif
                                             @endif
                                         </td>
@@ -84,9 +135,9 @@
 
                                             @else
                                           		@if($s->status == 2)
-                                                   <button type="submit" class="btn btn-default btn-sm">
-                                                        AB
-                                                   </button>
+                                                    <button type="submit" class="btn btn-default btn-sm">
+                                                         AB
+                                                    </button>
 
                                                  @else
                                                 {{ Html()->form('PATCH')->route('schedules.update', $s)->style('display:inline')->open() }}
@@ -97,7 +148,7 @@
                                                 {{ Html()->form()->close() }}
 												 @if(!$s->attendedAt)
                                           			{{ Html()->form('PATCH')->route('makeAbsent', $s)->style('display:inline')->open() }}
-                                                   
+
                                                        <input type="text" class="form-control" name="status" value="2" hidden>
                                                           <button type="submit" class="btn btn-danger btn-sm">
                                                               AB
@@ -112,7 +163,11 @@
 
                                         </td>
                                     </tr>
-                                    @endforeach
+                                    @empty
+                                    <tr>
+                                        <td colspan="9" class="text-center">No patients found for today</td>
+                                    </tr>
+                                    @endforelse
                                     </tbody>
                                 </table>
                             </div>
@@ -150,15 +205,6 @@
                 "responsive": true, "lengthChange": false, "autoWidth": false,
                 "buttons": ["copy", "csv", "excel", "pdf", "print", "colvis"]
             }).buttons().container().appendTo('#example1_wrapper .col-md-6:eq(0)');
-            $('#example2').DataTable({
-                "paging": true,
-                "lengthChange": false,
-                "searching": false,
-                "ordering": true,
-                "info": true,
-                "autoWidth": false,
-                "responsive": true,
-            });
         });
     </script>
 @endsection
