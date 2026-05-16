@@ -9,6 +9,12 @@ use Illuminate\Support\Facades\Mail;
 
 class ContactController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-contact', ['only'=>['trash']]);
+        $this->middleware('permission:restore-contact', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-contact', ['only'=>['forceDelete']]);
+    }
     public function index()
     {
         return view('front.contact');

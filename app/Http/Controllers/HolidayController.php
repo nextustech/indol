@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 
 class HolidayController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-holiday', ['only'=>['trash']]);
+        $this->middleware('permission:restore-holiday', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-holiday', ['only'=>['forceDelete']]);
+    }
     public function index(Request $request)
     {
         $holidays = Holiday::with('branch')

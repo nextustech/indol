@@ -20,6 +20,9 @@ class InvoiceController extends Controller
         $this->middleware(['auth']);
         $this->middleware('permission:viewInvoice', ['only'=>['index']]);
         $this->middleware('permission:deleteInvoice', ['only'=>['destroy']]);
+        $this->middleware('permission:view-trash-invoice', ['only'=>['trash']]);
+        $this->middleware('permission:restore-invoice', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-invoice', ['only'=>['forceDelete']]);
     }
 
     public function invoice($id){

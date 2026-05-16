@@ -29,6 +29,9 @@ class CollectionController extends Controller
         $this->middleware('permission:view-collectionReport', ['only'=>['collectionReport']]);
         $this->middleware('permission:view-CustomCollectionReport', ['only'=>['collectionReportCustom']]);
         $this->middleware('permission:view-RefundReport', ['only'=>['refundReport']]);
+        $this->middleware('permission:view-trash-collection', ['only'=>['trash']]);
+        $this->middleware('permission:restore-collection', ['only'=>['restore', 'bulkRestore']]);
+        $this->middleware('permission:force-delete-collection', ['only'=>['forceDelete', 'bulkForceDelete']]);
 
     }
     public function crd(){

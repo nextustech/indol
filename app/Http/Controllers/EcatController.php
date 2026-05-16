@@ -15,6 +15,9 @@ class EcatController extends Controller
         $this->middleware('permission:edit-ExpenseCategory', ['only'=>['edit']]);
         $this->middleware('permission:update-ExpenseCategory', ['only'=>['update']]);
         $this->middleware('permission:delete-ExpenseCategory', ['only'=>['destroy']]);
+        $this->middleware('permission:view-trash-ecat', ['only'=>['trash']]);
+        $this->middleware('permission:restore-ecat', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-ecat', ['only'=>['forceDelete']]);
 
     }
 

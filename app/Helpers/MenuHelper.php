@@ -113,6 +113,10 @@ class MenuHelper
             'settings' => [
                 'roles' => ['Super-Admin', 'owner', 'DIRECTOR'],
                 'permissions' => []
+            ],
+            'audit_logs' => [
+                'roles' => ['Super-Admin', 'owner', 'DIRECTOR', 'Admin'],
+                'permissions' => ['view-audit-logs']
             ]
         ];
     }

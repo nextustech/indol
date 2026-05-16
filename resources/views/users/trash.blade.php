@@ -42,12 +42,15 @@
                                             <td>{{ $user->email }}</td>
                                             <td>{{ $user->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-user')
                                                 <form action="{{ route('users.restore', $user->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this user?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-user')
                                                 <form action="{{ route('users.forceDelete', $user->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -55,6 +58,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

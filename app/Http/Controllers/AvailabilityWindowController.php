@@ -9,6 +9,12 @@ use Illuminate\Http\Request;
 
 class AvailabilityWindowController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-availability-window', ['only'=>['trash']]);
+        $this->middleware('permission:restore-availability-window', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-availability-window', ['only'=>['forceDelete']]);
+    }
     public function index(Request $request)
     {
         $windows = AvailabilityWindow::with(['branch', 'appointmentType'])

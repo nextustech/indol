@@ -39,12 +39,15 @@
                                             <td>{{ $schedule->sittingDate }}</td>
                                             <td>{{ $schedule->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-schedule')
                                                 <form action="{{ route('schedules.restore', $schedule->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this schedule?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-schedule')
                                                 <form action="{{ route('schedules.forceDelete', $schedule->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -52,6 +55,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

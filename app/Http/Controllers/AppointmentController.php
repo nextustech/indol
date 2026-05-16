@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\DB;
 
 class AppointmentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-appointment', ['only'=>['trash']]);
+        $this->middleware('permission:restore-appointment', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-appointment', ['only'=>['forceDelete']]);
+    }
     public function index(Request $request)
     {
         $appointments = Appointment::with(['branch', 'appointmentType'])

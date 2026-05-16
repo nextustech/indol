@@ -16,6 +16,9 @@ class BranchController extends Controller
         $this->middleware('permission:edit-branch', ['only'=>['edit']]);
         $this->middleware('permission:update-branch', ['only'=>['update']]);
         $this->middleware('permission:delete-branch', ['only'=>['destroy', 'forceDelete']]);
+        $this->middleware('permission:view-trash-branch', ['only'=>['trash']]);
+        $this->middleware('permission:restore-branch', ['only'=>['restore', 'bulkRestore']]);
+        $this->middleware('permission:force-delete-branch', ['only'=>['forceDelete', 'bulkForceDelete']]);
 
     }
 

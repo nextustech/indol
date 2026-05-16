@@ -10,6 +10,12 @@ use Illuminate\Http\Request;
 
 class BranchAppointmentTypeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-branch-appointment-type', ['only'=>['trash']]);
+        $this->middleware('permission:restore-branch-appointment-type', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-branch-appointment-type', ['only'=>['forceDelete']]);
+    }
     public function index(Request $request)
     {
         $query = BranchAppointmentType::with(['branch', 'appointmentType']);

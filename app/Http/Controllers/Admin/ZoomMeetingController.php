@@ -11,6 +11,12 @@ use Carbon\Carbon;
 
 class ZoomMeetingController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-zoom-meeting', ['only'=>['trash']]);
+        $this->middleware('permission:restore-zoom-meeting', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-zoom-meeting', ['only'=>['forceDelete']]);
+    }
     public function index()
     {
         $meetings = ZoomMeeting::orderBy('start_time', 'desc')->get();

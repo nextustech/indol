@@ -39,12 +39,15 @@
                                             <td>{{ $invoice->date }}</td>
                                             <td>{{ $invoice->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-invoice')
                                                 <form action="{{ route('invoices.restore', $invoice->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this invoice?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-invoice')
                                                 <form action="{{ route('invoices.forceDelete', $invoice->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -52,6 +55,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

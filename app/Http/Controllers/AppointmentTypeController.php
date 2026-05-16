@@ -7,6 +7,12 @@ use Illuminate\Http\Request;
 
 class AppointmentTypeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-appointment-type', ['only'=>['trash']]);
+        $this->middleware('permission:restore-appointment-type', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-appointment-type', ['only'=>['forceDelete']]);
+    }
     public function index(Request $request)
     {
         $types = AppointmentType::when($request->search, fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))

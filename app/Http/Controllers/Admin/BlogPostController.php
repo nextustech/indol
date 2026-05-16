@@ -12,6 +12,12 @@ use Illuminate\Support\Str;
 
 class BlogPostController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-blog-post', ['only'=>['trash']]);
+        $this->middleware('permission:restore-blog-post', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-blog-post', ['only'=>['forceDelete']]);
+    }
     public function index()
     {
         $posts = BlogPost::with(['author', 'category'])

@@ -9,6 +9,12 @@ use Illuminate\Support\Str;
 
 class BlogTagController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-blog-tag', ['only'=>['trash']]);
+        $this->middleware('permission:restore-blog-tag', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-blog-tag', ['only'=>['forceDelete']]);
+    }
     public function index()
     {
         $tags = BlogTag::withCount('posts')

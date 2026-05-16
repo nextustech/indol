@@ -37,12 +37,15 @@
                                             <td>{{ $mode->note }}</td>
                                             <td>{{ $mode->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-mode')
                                                 <form action="{{ route('modes.restore', $mode->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this mode?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-mode')
                                                 <form action="{{ route('modes.forceDelete', $mode->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -50,6 +53,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

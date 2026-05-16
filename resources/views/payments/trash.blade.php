@@ -39,12 +39,15 @@
                                             <td>{{ $payment->date }}</td>
                                             <td>{{ $payment->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-payment')
                                                 <form action="{{ route('payments.restore', $payment->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this payment?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-payment')
                                                 <form action="{{ route('payments.forceDelete', $payment->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -52,6 +55,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

@@ -46,12 +46,15 @@
                                             <td>{{ $branch->branchEmail }}</td>
                                             <td>{{ $branch->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-branch')
                                                 <form action="{{ route('branches.restore', $branch->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this branch?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-branch')
                                                 <form action="{{ route('branches.forceDelete', $branch->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -59,6 +62,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

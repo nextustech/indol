@@ -9,6 +9,12 @@ use Illuminate\Support\Str;
 
 class BlogCategoryController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-blog-category', ['only'=>['trash']]);
+        $this->middleware('permission:restore-blog-category', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-blog-category', ['only'=>['forceDelete']]);
+    }
     public function index()
     {
         $categories = BlogCategory::with('parent')

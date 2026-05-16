@@ -39,12 +39,15 @@
                                             <td>{{ $bill->date }}</td>
                                             <td>{{ $bill->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-bill')
                                                 <form action="{{ route('bills.restore', $bill->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this bill?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-bill')
                                                 <form action="{{ route('bills.forceDelete', $bill->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -52,6 +55,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

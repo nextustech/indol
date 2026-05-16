@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-payment', ['only'=>['trash']]);
+        $this->middleware('permission:restore-payment', ['only'=>['restore', 'bulkRestore']]);
+        $this->middleware('permission:force-delete-payment', ['only'=>['forceDelete', 'bulkForceDelete']]);
+    }
     /**
      * Display a listing of the resource.
      *

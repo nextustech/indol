@@ -7,6 +7,12 @@ use Illuminate\Http\Request;
 
 class BillController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-bill', ['only'=>['trash']]);
+        $this->middleware('permission:restore-bill', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-bill', ['only'=>['forceDelete']]);
+    }
     /**
      * Display a listing of the resource.
      */

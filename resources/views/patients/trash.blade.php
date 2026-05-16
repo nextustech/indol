@@ -43,12 +43,15 @@
                                             <td>{{ $patient->mobile }}</td>
                                             <td>{{ $patient->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-patient')
                                                 <form action="{{ route('patients.restore', $patient->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this patient?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-patient')
                                                 <form action="{{ route('patients.forceDelete', $patient->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -56,6 +59,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

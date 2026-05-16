@@ -25,6 +25,9 @@ class ExpenseController extends Controller
         $this->middleware('permission:delete-Expense', ['only'=>['destroy']]);
         $this->middleware('permission:Exp-Report', ['only'=>['expData']]);
         $this->middleware('permission:Exp-ReportShow', ['only'=>['expenseReport']]);
+        $this->middleware('permission:view-trash-expense', ['only'=>['trash']]);
+        $this->middleware('permission:restore-expense', ['only'=>['restore', 'bulkRestore']]);
+        $this->middleware('permission:force-delete-expense', ['only'=>['forceDelete', 'bulkForceDelete']]);
 
     }
 

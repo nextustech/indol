@@ -15,6 +15,12 @@ use Illuminate\Support\Facades\Auth;
 
 class ScheduleController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-schedule', ['only'=>['trash']]);
+        $this->middleware('permission:restore-schedule', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-schedule', ['only'=>['forceDelete']]);
+    }
     /**
      * Display a listing of the resource.
      *

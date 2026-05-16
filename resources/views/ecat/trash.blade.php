@@ -37,12 +37,15 @@
                                             <td>{{ $ecat->detail }}</td>
                                             <td>{{ $ecat->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-ecat')
                                                 <form action="{{ route('ecat.restore', $ecat->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this category?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-ecat')
                                                 <form action="{{ route('ecat.forceDelete', $ecat->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -50,6 +53,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

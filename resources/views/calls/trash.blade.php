@@ -39,12 +39,15 @@
                                             <td>{{ $call->call_at }}</td>
                                             <td>{{ $call->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-call')
                                                 <form action="{{ route('calls.restore', $call->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this call?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-call')
                                                 <form action="{{ route('calls.forceDelete', $call->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -52,6 +55,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

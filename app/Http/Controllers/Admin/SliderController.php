@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 
 class SliderController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-slider', ['only'=>['trash']]);
+        $this->middleware('permission:restore-slider', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-slider', ['only'=>['forceDelete']]);
+    }
     /**
      * Display a listing of the resource.
      */

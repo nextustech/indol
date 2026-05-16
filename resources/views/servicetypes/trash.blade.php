@@ -39,12 +39,15 @@
                                             <td>{{ $serviceType->days }}</td>
                                             <td>{{ $serviceType->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-servicetype')
                                                 <form action="{{ route('servicetypes.restore', $serviceType->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this service type?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-servicetype')
                                                 <form action="{{ route('servicetypes.forceDelete', $serviceType->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -52,6 +55,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

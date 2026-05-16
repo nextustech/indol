@@ -75,7 +75,7 @@ Route::group(['middleware' => 'isAdmin'], function () {
 
 Route::group(['middleware' => 'auth'], function () {
 
-    Route::get('audit-logs', [App\Http\Controllers\AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('audit-logs', [App\Http\Controllers\AuditLogController::class, 'index'])->name('audit-logs.index')->middleware('permission:view-audit-logs');
 
     // Trash & bulk routes MUST be before resource routes to avoid {resource}/{id} conflicts
     Route::prefix('patients')->name('patients.')->group(function () {

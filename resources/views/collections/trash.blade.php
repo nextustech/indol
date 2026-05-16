@@ -36,12 +36,15 @@
                                             <td>{{ $collection->collectionDate }}</td>
                                             <td>{{ $collection->deleted_at->format('d M Y, h:i A') }}</td>
                                             <td>
+                                                @can('restore-collection')
                                                 <form action="{{ route('collections.restore', $collection->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     <button type="submit" class="btn btn-outline-success btn-sm" onclick="return confirm('Restore this collection?')">
                                                         <i class="fas fa-undo"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
+                                                @can('force-delete-collection')
                                                 <form action="{{ route('collections.forceDelete', $collection->id) }}" method="POST" style="display:inline">
                                                     @csrf
                                                     @method('DELETE')
@@ -49,6 +52,7 @@
                                                         <i class="fas fa-times"></i>
                                                     </button>
                                                 </form>
+                                                @endcan
                                             </td>
                                         </tr>
                                     @endforeach

@@ -14,6 +14,9 @@ class ServiceTypeController extends Controller
         $this->middleware('permission:edit-ServiceType', ['only'=>['edit']]);
         $this->middleware('permission:update-ServiceType', ['only'=>['update']]);
         $this->middleware('permission:delete-ServiceType', ['only'=>['destroy']]);
+        $this->middleware('permission:view-trash-servicetype', ['only'=>['trash']]);
+        $this->middleware('permission:restore-servicetype', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-servicetype', ['only'=>['forceDelete']]);
 
     }
     /**

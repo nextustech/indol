@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 
 class CallController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('permission:view-trash-call', ['only'=>['trash']]);
+        $this->middleware('permission:restore-call', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-call', ['only'=>['forceDelete']]);
+    }
     /**
      * Display a listing of the resource.
      */

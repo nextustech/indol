@@ -18,6 +18,9 @@ class UserController extends Controller
         $this->middleware('permission:edit-user', ['only'=>['edit']]);
         $this->middleware('permission:update-user', ['only'=>['update']]);
         $this->middleware('permission:delete-user', ['only'=>['destroy', 'forceDelete']]);
+        $this->middleware('permission:view-trash-user', ['only'=>['trash']]);
+        $this->middleware('permission:restore-user', ['only'=>['restore', 'bulkRestore']]);
+        $this->middleware('permission:force-delete-user', ['only'=>['forceDelete', 'bulkForceDelete']]);
 
     }
 

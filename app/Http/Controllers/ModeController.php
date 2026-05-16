@@ -15,6 +15,9 @@ class ModeController extends Controller
         $this->middleware('permission:edit-create', ['only'=>['edit']]);
         $this->middleware('permission:update-create', ['only'=>['update']]);
         $this->middleware('permission:delete-create', ['only'=>['destroy']]);
+        $this->middleware('permission:view-trash-mode', ['only'=>['trash']]);
+        $this->middleware('permission:restore-mode', ['only'=>['restore']]);
+        $this->middleware('permission:force-delete-mode', ['only'=>['forceDelete']]);
 
     }
 

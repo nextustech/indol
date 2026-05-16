@@ -22,6 +22,9 @@ class PatientController extends Controller
         $this->middleware('permission:delete-PatientProfile', ['only' => ['destroy']]);
         $this->middleware('permission:getChangeBranch', ['only' => ['getChangeBranch']]);
         $this->middleware('permission:changeBranch', ['only' => ['changeBranch']]);
+        $this->middleware('permission:view-trash-patient', ['only' => ['trash']]);
+        $this->middleware('permission:restore-patient', ['only' => ['restore', 'bulkRestore']]);
+        $this->middleware('permission:force-delete-patient', ['only' => ['forceDelete', 'bulkForceDelete']]);
 
     }
 
