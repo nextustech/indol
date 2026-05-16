@@ -15,30 +15,21 @@ class BranchController extends Controller
         $this->middleware('permission:create-branch', ['only'=>['create']]);
         $this->middleware('permission:edit-branch', ['only'=>['edit']]);
         $this->middleware('permission:update-branch', ['only'=>['update']]);
-        $this->middleware('permission:delete-branch', ['only'=>['destroy']]);
+        $this->middleware('permission:delete-branch', ['only'=>['destroy', 'forceDelete']]);
 
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $branches = Branch::all();
         return view('branches.index',compact('branches'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         return view('branches.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $rules =  [
@@ -70,25 +61,16 @@ class BranchController extends Controller
         return redirect()->route('branches.index')->with('message','Added Successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(Branch $branch)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Branch $branch)
     {
         return view('branches.edit',compact('branch'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Branch $branch)
     {
         $rules =  [
@@ -115,16 +97,54 @@ class BranchController extends Controller
         $branch->branchPhone = $request->branchPhone;
         $branch->branchEmail = $request->branchEmail;
         $branch->save();
-       // $branch->users()->attach($user);
         return redirect()->route('branches.index')->with('message','Added Successfully');
 
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Branch $branch)
     {
-        //
+        $branch->deleteRecord();
+        return redirect()->route('branches.index')->with('message','Deleted Successfully');
+    }
+
+    public function trash()
+    {
+        $branches = Branch::onlyDeleted()->latest('deleted_at')->get();
+        return view('branches.trash', compact('branches'));
+    }
+
+    public function restore($id)
+    {
+        $branch = Branch::withDeleted()->findOrFail($id);
+        $branch->restoreRecord();
+        return redirect()->route('branches.trash')->with('message','Restored Successfully');
+    }
+
+    public function forceDelete($id)
+    {
+        $branch = Branch::withDeleted()->findOrFail($id);
+        $branch->forceDeleteRecord();
+        return redirect()->route('branches.trash')->with('message','Permanently Deleted Successfully');
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Branch::whereIn('id', $request->ids)->each(fn($b) => $b->deleteRecord());
+        return back()->with('message', count($request->ids) . ' branches deleted');
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Branch::onlyDeleted()->whereIn('id', $request->ids)->each(fn($b) => $b->restoreRecord());
+        return back()->with('message', count($request->ids) . ' branches restored');
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Branch::onlyDeleted()->whereIn('id', $request->ids)->each(fn($b) => $b->forceDeleteRecord());
+        return back()->with('message', count($request->ids) . ' branches permanently deleted');
     }
 }

@@ -130,6 +130,26 @@ class BlogPostController extends Controller
             ->with('success', 'Post Deleted Successfully');
     }
 
+    public function trash()
+    {
+        $posts = BlogPost::onlyTrashed()->latest('deleted_at')->paginate(15);
+        return view('admin.blog.posts.trash', compact('posts'));
+    }
+
+    public function restore($id)
+    {
+        $post = BlogPost::withTrashed()->findOrFail($id);
+        $post->restore();
+        return redirect()->route('admin.blog.posts.trash')->with('success', 'Post restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $post = BlogPost::withTrashed()->findOrFail($id);
+        $post->forceDelete();
+        return redirect()->route('admin.blog.posts.trash')->with('success', 'Post permanently deleted.');
+    }
+
     public function comments()
     {
         $comments = BlogComment::with(['post', 'parent'])

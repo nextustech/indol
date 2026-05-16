@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class Holiday extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
 
         protected $fillable = [
         'branch_id',
@@ -17,7 +18,10 @@ class Holiday extends Model
         'start_time',
         'end_time',
         'is_full_day',
-        'is_recurring'
+        'is_recurring',
+        'isDeleted',
+        'deletedBy',
+        'deleted_at',
     ];
 
     // Belongs to Branch

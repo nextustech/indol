@@ -4,13 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class Patient extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
    // protected $guarded = [];
-    protected $fillable =['created_by','name','ref_by','patientId','age','gender','phone','mobile','diagnosis','address','image','date','otherNotes','status'];
 
+
+
+    protected $fillable =['created_by','name','ref_by','patientId','age','gender','phone','mobile','diagnosis','address','image','date','otherNotes','status','isDeleted','deletedBy','deleted_at'];
+
+       protected $casts = [
+    'deleted_at' => 'datetime',
+    ];
+    
     public function branches()
     {
         return $this->belongsToMany(Branch::class);

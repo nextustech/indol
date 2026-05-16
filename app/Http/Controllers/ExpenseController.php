@@ -205,9 +205,56 @@ class ExpenseController extends Controller
             }
         }
 
-        Expense::destroy($expense->id);
+        $expense->deleteRecord();
         return redirect()->route('expenses.index')->with('message','Deleted Successfully');
 
+    }
+
+    public function trash()
+    {
+        $user = loggedUser();
+        $query = Expense::onlyDeleted();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $expenses = $query->latest('deleted_at')->paginate(25);
+        return view('expenses.trash', compact('expenses'));
+    }
+
+    public function restore($id){
+        $expense = Expense::withDeleted()->findOrFail($id);
+        $expense->restoreRecord();
+        return redirect()->route('expenses.trash')->with('message','Restored Successfully');
+    }
+
+    public function forceDelete($id)
+    {
+        $expense = Expense::withDeleted()->findOrFail($id);
+        $expense->forceDeleteRecord();
+        return redirect()->route('expenses.trash')->with('message','Permanently Deleted Successfully');
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Expense::whereIn('id', $request->ids)->each(fn($e) => $e->deleteRecord());
+        return back()->with('message', count($request->ids) . ' expenses deleted');
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Expense::onlyDeleted()->whereIn('id', $request->ids)->each(fn($e) => $e->restoreRecord());
+        return back()->with('message', count($request->ids) . ' expenses restored');
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Expense::onlyDeleted()->whereIn('id', $request->ids)->each(fn($e) => $e->forceDeleteRecord());
+        return back()->with('message', count($request->ids) . ' expenses permanently deleted');
     }
 
     public function expData(Request $request)

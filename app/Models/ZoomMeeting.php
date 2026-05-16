@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class ZoomMeeting extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
 
     protected $fillable = [
         'meeting_id',
@@ -24,7 +25,10 @@ class ZoomMeeting extends Model
         'status',
         'type',
         'created_by',
-        'settings'
+        'settings',
+        'isDeleted',
+        'deletedBy',
+        'deleted_at',
     ];
 
     protected $casts = [

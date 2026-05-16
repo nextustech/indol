@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class Branch extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
 
     protected $guarded =[];
     protected $casts = [

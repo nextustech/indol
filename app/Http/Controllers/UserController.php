@@ -17,22 +17,16 @@ class UserController extends Controller
         $this->middleware('permission:create-user', ['only'=>['create']]);
         $this->middleware('permission:edit-user', ['only'=>['edit']]);
         $this->middleware('permission:update-user', ['only'=>['update']]);
-        $this->middleware('permission:delete-user', ['only'=>['destroy']]);
+        $this->middleware('permission:delete-user', ['only'=>['destroy', 'forceDelete']]);
 
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         $users = User::get();
         return view('users.index',compact('users'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         $roles = Role::pluck('name','name')->all();
@@ -40,9 +34,6 @@ class UserController extends Controller
         return view('users.create',compact('roles','branches'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -63,17 +54,11 @@ class UserController extends Controller
         return redirect()->back();
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show(string $id)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit( User $user)
     {
         $roles = Role::pluck('name','name')->all();
@@ -81,9 +66,6 @@ class UserController extends Controller
         return view('users.edit',compact('user','roles','branches'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, User $user)
     {
         $request->validate([
@@ -111,12 +93,51 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('message','User Updated Successffully');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy( User $user )
     {
-        $user->delete();
+        $user->deleteRecord();
         return redirect()->route('users.index')->with('message','User Deleted Successffully');
     }
+
+    public function trash()
+    {
+        $users = User::onlyDeleted()->latest('deleted_at')->get();
+        return view('users.trash', compact('users'));
+    }
+
+    public function restore($id)
+    {
+        $user = User::withDeleted()->findOrFail($id);
+        $user->restoreRecord();
+        return redirect()->route('users.trash')->with('message','User Restored Successffully');
+    }
+
+    public function forceDelete($id)
+    {
+        $user = User::withDeleted()->findOrFail($id);
+        $user->forceDeleteRecord();
+        return redirect()->route('users.trash')->with('message','User Permanently Deleted Successffully');
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        User::whereIn('id', $request->ids)->each(fn($u) => $u->deleteRecord());
+        return back()->with('message', count($request->ids) . ' users deleted');
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        User::onlyDeleted()->whereIn('id', $request->ids)->each(fn($u) => $u->restoreRecord());
+        return back()->with('message', count($request->ids) . ' users restored');
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        User::onlyDeleted()->whereIn('id', $request->ids)->each(fn($u) => $u->forceDeleteRecord());
+        return back()->with('message', count($request->ids) . ' users permanently deleted');
+    }
+
 }

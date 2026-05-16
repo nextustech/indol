@@ -91,4 +91,24 @@ class BlogCategoryController extends Controller
         return redirect()->route('admin.blog.categories.index')
             ->with('success', 'Category Deleted Successfully');
     }
+
+    public function trash()
+    {
+        $categories = BlogCategory::onlyTrashed()->latest('deleted_at')->get();
+        return view('admin.blog.categories.trash', compact('categories'));
+    }
+
+    public function restore($id)
+    {
+        $category = BlogCategory::withTrashed()->findOrFail($id);
+        $category->restore();
+        return redirect()->route('admin.blog.categories.trash')->with('success', 'Category restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $category = BlogCategory::withTrashed()->findOrFail($id);
+        $category->forceDelete();
+        return redirect()->route('admin.blog.categories.trash')->with('success', 'Category permanently deleted.');
+    }
 }

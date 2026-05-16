@@ -94,10 +94,30 @@ class AppointmentController extends Controller
 
     public function destroy(Appointment $appointment)
     {
-        $appointment->delete();
+        $appointment->deleteRecord();
 
         return redirect()->route('appointments.index')
             ->with('success', 'Appointment deleted successfully.');
+    }
+
+    public function trash()
+    {
+        $appointments = Appointment::onlyDeleted()->latest('deleted_at')->paginate(15);
+        return view('admin.appointments.trash', compact('appointments'));
+    }
+
+    public function restore($id)
+    {
+        $appointment = Appointment::withDeleted()->findOrFail($id);
+        $appointment->restoreRecord();
+        return redirect()->route('appointments.trash')->with('success', 'Appointment restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $appointment = Appointment::withDeleted()->findOrFail($id);
+        $appointment->forceDeleteRecord();
+        return redirect()->route('appointments.trash')->with('success', 'Appointment permanently deleted.');
     }
 
     public function updateStatus(Request $request, Appointment $appointment)

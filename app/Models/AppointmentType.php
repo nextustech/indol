@@ -4,13 +4,15 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class AppointmentType extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
 
     protected $fillable = [
-        'name', 'duration', 'price', 'is_active'
+        'name', 'duration', 'price', 'is_active',
+        'isDeleted', 'deletedBy', 'deleted_at',
     ];
 
     // Many-to-Many with Branches

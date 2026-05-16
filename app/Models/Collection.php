@@ -4,12 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class Collection extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
 
-    protected $fillable = ['user_id','mode_id','service_type_id','branch_id','patient_id','pakage_id','payment_id','branch_id','collectionDate','amount','discount','refund','refundDate','note','paymentNote'];
+    protected $fillable = ['user_id','mode_id','service_type_id','branch_id','patient_id','pakage_id','payment_id','branch_id','collectionDate','amount','discount','refund','refundDate','note','paymentNote','isDeleted','deletedBy','deleted_at'];
+
+    protected $casts = [
+    'deleted_at' => 'datetime',
+    ];
 
     public static function rules($id = '') {
         return [

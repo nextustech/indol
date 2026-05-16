@@ -65,4 +65,24 @@ class BlogTagController extends Controller
         return redirect()->route('admin.blog.tags.index')
             ->with('success', 'Tag Deleted Successfully');
     }
+
+    public function trash()
+    {
+        $tags = BlogTag::onlyTrashed()->latest('deleted_at')->get();
+        return view('admin.blog.tags.trash', compact('tags'));
+    }
+
+    public function restore($id)
+    {
+        $tag = BlogTag::withTrashed()->findOrFail($id);
+        $tag->restore();
+        return redirect()->route('admin.blog.tags.trash')->with('success', 'Tag restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $tag = BlogTag::withTrashed()->findOrFail($id);
+        $tag->forceDelete();
+        return redirect()->route('admin.blog.tags.trash')->with('success', 'Tag permanently deleted.');
+    }
 }

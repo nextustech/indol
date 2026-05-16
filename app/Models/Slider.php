@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class Slider extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
 
     protected $fillable = [
         'sub_title',
@@ -19,6 +20,9 @@ class Slider extends Model
         'video_url',
         'image',
         'order',
-        'status'
+        'status',
+        'isDeleted',
+        'deletedBy',
+        'deleted_at',
     ];
 }

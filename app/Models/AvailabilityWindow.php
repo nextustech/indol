@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class AvailabilityWindow extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
 
      protected $fillable = [
         'branch_id',
@@ -17,7 +18,10 @@ class AvailabilityWindow extends Model
         'end_time',
         'slot_duration',
         'capacity',
-        'is_active'
+        'is_active',
+        'isDeleted',
+        'deletedBy',
+        'deleted_at',
     ];
 
     // Belongs to Branch

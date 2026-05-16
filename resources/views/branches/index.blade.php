@@ -11,8 +11,11 @@
                     <div class="col-lg-12">
 
                         <div class="card card-primary card-outline">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="m-0">Branches</h5>
+                                <a href="{{ route('branches.trash') }}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i> View Trash
+                                </a>
                             </div>
 
                             <div class="card-body">
@@ -20,9 +23,13 @@
                                 @if (Session::has('message'))
                                     <div class="alert alert-success text-center">{{ session('message') }}</div>
                                 @endif
+
+                                @include('partials.bulk-actions')
+
                                 <table class="table table-sm">
                                     <thead>
                                     <tr>
+                                        <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
                                         <th style="width: 10px">#</th>
                                         <th>Name</th>
                                         <th>address</th>
@@ -36,6 +43,7 @@
                                     <?php $i = 1; ?>
                                         @foreach( $branches as $branche )
                                             <tr>
+                                                <td><input type="checkbox" class="bulk-checkbox" value="{{ $branche->id }}" onchange="updateBulkBar()"></td>
                                                 <td>{{ $i++ }}</td>
                                                 <td>{{ $branche->branchName }}</td>
                                                 <td> {{ $branche->address }} </td>

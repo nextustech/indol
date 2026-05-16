@@ -96,9 +96,29 @@ class SliderController extends Controller
      */
     public function destroy(Slider $slider)
     {
-        $slider->delete();
+        $slider->deleteRecord();
 
         return redirect()->route('admin.sliders.index')
         ->with('success','Slider Deleted');
+    }
+
+    public function trash()
+    {
+        $sliders = Slider::onlyDeleted()->latest('deleted_at')->get();
+        return view('admin.sliders.trash', compact('sliders'));
+    }
+
+    public function restore($id)
+    {
+        $slider = Slider::withDeleted()->findOrFail($id);
+        $slider->restoreRecord();
+        return redirect()->route('admin.sliders.trash')->with('success', 'Slider restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $slider = Slider::withDeleted()->findOrFail($id);
+        $slider->forceDeleteRecord();
+        return redirect()->route('admin.sliders.trash')->with('success', 'Slider permanently deleted.');
     }
 }

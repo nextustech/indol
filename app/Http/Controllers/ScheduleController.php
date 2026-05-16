@@ -374,8 +374,28 @@ public function makeAbsent(Request $request, Schedule $schedule)
             }
         }
 
-        Schedule::destroy($schedule->id);
-        return redirect()->back();
+        $schedule->deleteRecord();
+        return redirect()->back()->with('message','Deleted Successfully');
+    }
+
+    public function trash()
+    {
+        $schedules = Schedule::onlyDeleted()->latest('deleted_at')->get();
+        return view('schedules.trash', compact('schedules'));
+    }
+
+    public function restore($id)
+    {
+        $schedule = Schedule::withDeleted()->findOrFail($id);
+        $schedule->restoreRecord();
+        return redirect()->route('schedules.trash')->with('message','Restored Successfully');
+    }
+
+    public function forceDelete($id)
+    {
+        $schedule = Schedule::withDeleted()->findOrFail($id);
+        $schedule->forceDeleteRecord();
+        return redirect()->route('schedules.trash')->with('message','Permanently Deleted Successfully');
     }
 
 

@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class Bill extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
     protected $guarded = [];
     public function invoice(){
         return $this->belongsTo(Invoice::class)->withDefault();

@@ -101,9 +101,29 @@ class BranchAppointmentTypeController extends Controller
     public function destroy($id)
     {
         $branchType = BranchAppointmentType::findOrFail($id);
-        $branchType->delete();
+        $branchType->deleteRecord();
 
         return redirect()->route('admin.branch-appointment-types.index')
             ->with('success', 'Assignment deleted successfully.');
+    }
+
+    public function trash()
+    {
+        $branchTypes = BranchAppointmentType::onlyDeleted()->latest('deleted_at')->get();
+        return view('admin.branch-appointment-types.trash', compact('branchTypes'));
+    }
+
+    public function restore($id)
+    {
+        $branchType = BranchAppointmentType::withDeleted()->findOrFail($id);
+        $branchType->restoreRecord();
+        return redirect()->route('admin.branch-appointment-types.trash')->with('success', 'Assignment restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $branchType = BranchAppointmentType::withDeleted()->findOrFail($id);
+        $branchType->forceDeleteRecord();
+        return redirect()->route('admin.branch-appointment-types.trash')->with('success', 'Assignment permanently deleted.');
     }
 }

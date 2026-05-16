@@ -84,6 +84,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('patients.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Trash</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('searchPatientByReg') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Search By Reg. Date</p>
@@ -116,6 +122,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('expenses.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Trash</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('expenses.create') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Add Expense</p>
@@ -132,6 +144,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             <a href="{{ route('ecat.index') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Expense Categories</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('ecat.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Category Trash</p>
                             </a>
                         </li>
                         @endif
@@ -216,6 +234,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('users.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Trash</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('users.create') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Add User</p>
@@ -227,9 +251,9 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                 @endrole
                    <li class="nav-item">
                     <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-user"></i>
+                        <i class="nav-icon fas fa-file-invoice"></i>
                         <p>
-                            invoices
+                            Invoices
                             <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
@@ -237,7 +261,19 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                         <li class="nav-item">
                             <a href="{{ route('invoices.index') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>invoice</p>
+                                <p>Invoices</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('invoices.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Trash</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('bills.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Bills Trash</p>
                             </a>
                         </li>
 
@@ -261,6 +297,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('branches.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Trash</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('branches.create') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Add Branch</p>
@@ -271,7 +313,7 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                 </li>
                 <li class="nav-item">
                     <a href="#" class="nav-link">
-                        <i class="nav-icon fas fa-user"></i>
+                        <i class="nav-icon fas fa-money-check"></i>
                         <p>
                             Payment Modes
                             <i class="right fas fa-angle-left"></i>
@@ -282,6 +324,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             <a href="{{ route('modes.index') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Payment Modes List</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('modes.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Trash</p>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -318,6 +366,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             <a href="{{ route('servicetypes.index') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Service Type List</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('servicetypes.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Trash</p>
                             </a>
                         </li>
                         <li class="nav-item">
@@ -469,6 +523,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                                 <p>Create Meeting</p>
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.zoom-meetings.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Trash</p>
+                            </a>
+                        </li>
                     </ul>
                 </li>
 
@@ -485,6 +545,59 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             <a href="{{ route('admin.IndexContact') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
                                 <p>Contact Messages</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.contacts.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Trash</p>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('audit-logs.index') }}" class="nav-link">
+                        <i class="nav-icon fas fa-clipboard-list"></i>
+                        <p>Audit Log</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link bg-dark">
+                        <i class="nav-icon fas fa-trash"></i>
+                        <p>
+                            Trash Center
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('patients.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Patients</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('payments.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Payments</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('collections.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Collections</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('schedules.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Schedules</p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('calls.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Calls</p>
                             </a>
                         </li>
                     </ul>

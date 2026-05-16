@@ -79,9 +79,29 @@ class HolidayController extends Controller
 
     public function destroy(Holiday $holiday)
     {
-        $holiday->delete();
+        $holiday->deleteRecord();
 
         return redirect()->route('admin.holidays.index')
             ->with('success', 'Holiday deleted successfully.');
+    }
+
+    public function trash()
+    {
+        $holidays = Holiday::onlyDeleted()->latest('deleted_at')->paginate(15);
+        return view('admin.holidays.trash', compact('holidays'));
+    }
+
+    public function restore($id)
+    {
+        $holiday = Holiday::withDeleted()->findOrFail($id);
+        $holiday->restoreRecord();
+        return redirect()->route('admin.holidays.trash')->with('success', 'Holiday restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $holiday = Holiday::withDeleted()->findOrFail($id);
+        $holiday->forceDeleteRecord();
+        return redirect()->route('admin.holidays.trash')->with('success', 'Holiday permanently deleted.');
     }
 }

@@ -229,15 +229,73 @@ class PaymentController extends Controller
      * @param  \App\Payment  $payment
      * @return \Illuminate\Http\Response
      */
+
+    public function trash()
+    {
+        $payments = Payment::onlyDeleted()->latest('deleted_at')->get();
+        return view('payments.trash', compact('payments'));
+    }
+
+    public function forceDelete($id)
+    {
+        $payment = Payment::withDeleted()->findOrFail($id);
+        $collections = Collection::withDeleted()->where('payment_id',$payment->id)->get();
+        foreach( $collections as $collection){
+            $collection->forceDeleteRecord();
+        }
+        $payment->forceDeleteRecord();
+        return redirect()->route('payments.trash')->with('message','Permanently Deleted Successfully');
+    }
+
+    public function restore($id){
+        $payment = Payment::withDeleted()->findOrFail($id);
+        $collections = Collection::withDeleted()->where('payment_id',$payment->id)->get();
+        foreach( $collections as $collection){
+            $collection->restoreRecord();
+        }
+        $payment->restoreRecord();
+        return redirect()->route('payments.trash')->with('message','Restored Successfully');
+    }
+
     public function destroy(Payment $payment)
     {
         $collections = Collection::where('payment_id',$payment->id)->get();
         foreach( $collections as $collection){
-            Collection::destroy($collection->id);
+            $collection->deleteRecord();
         }
-        Payment::destroy($payment->id);
+        $payment->deleteRecord();
         return redirect()->back()->with('message','Deleted Successfully');
-      
-      
+
+
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        foreach(Payment::whereIn('id', $request->ids)->get() as $payment) {
+            Collection::where('payment_id',$payment->id)->each(fn($c) => $c->deleteRecord());
+            $payment->deleteRecord();
+        }
+        return back()->with('message', count($request->ids) . ' payments deleted');
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        foreach(Payment::onlyDeleted()->whereIn('id', $request->ids)->get() as $payment) {
+            Collection::onlyDeleted()->where('payment_id',$payment->id)->each(fn($c) => $c->restoreRecord());
+            $payment->restoreRecord();
+        }
+        return back()->with('message', count($request->ids) . ' payments restored');
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        foreach(Payment::onlyDeleted()->whereIn('id', $request->ids)->get() as $payment) {
+            Collection::onlyDeleted()->where('payment_id',$payment->id)->each(fn($c) => $c->forceDeleteRecord());
+            $payment->forceDeleteRecord();
+        }
+        return back()->with('message', count($request->ids) . ' payments permanently deleted');
     }
 }

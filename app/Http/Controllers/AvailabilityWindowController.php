@@ -92,9 +92,29 @@ class AvailabilityWindowController extends Controller
 
     public function destroy(AvailabilityWindow $availabilityWindow)
     {
-        $availabilityWindow->delete();
+        $availabilityWindow->deleteRecord();
 
         return redirect()->route('admin.availability-windows.index')
             ->with('success', 'Availability window deleted successfully.');
+    }
+
+    public function trash()
+    {
+        $windows = AvailabilityWindow::onlyDeleted()->latest('deleted_at')->paginate(15);
+        return view('admin.availability-windows.trash', compact('windows'));
+    }
+
+    public function restore($id)
+    {
+        $window = AvailabilityWindow::withDeleted()->findOrFail($id);
+        $window->restoreRecord();
+        return redirect()->route('admin.availability-windows.trash')->with('success', 'Availability window restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $window = AvailabilityWindow::withDeleted()->findOrFail($id);
+        $window->forceDeleteRecord();
+        return redirect()->route('admin.availability-windows.trash')->with('success', 'Availability window permanently deleted.');
     }
 }

@@ -218,6 +218,47 @@ public function edit(Collection $collection)
          return redirect()->route('payIndex',$collection->payment_id)->with('message','Updated Successfully');
     }
 
+    public function trash()
+    {
+        $user = loggedUser();
+        $query = Collection::onlyDeleted();
+
+        if ($user->roles->pluck('name')->first() === 'HomePhysiotherapist') {
+            $query->where('user_id', $user->id);
+        }
+
+        $collections = $query->latest('deleted_at')->paginate(25);
+        return view('collections.trash', compact('collections'));
+    }
+
+    public function forceDelete($id)
+    {
+        $collection = Collection::withDeleted()->findOrFail($id);
+        $collection->forceDeleteRecord();
+        return redirect()->route('collections.trash')->with('message','Permanently Deleted Successfully');
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Collection::whereIn('id', $request->ids)->each(fn($c) => $c->deleteRecord());
+        return back()->with('message', count($request->ids) . ' collections deleted');
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Collection::onlyDeleted()->whereIn('id', $request->ids)->each(fn($c) => $c->restoreRecord());
+        return back()->with('message', count($request->ids) . ' collections restored');
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Collection::onlyDeleted()->whereIn('id', $request->ids)->each(fn($c) => $c->forceDeleteRecord());
+        return back()->with('message', count($request->ids) . ' collections permanently deleted');
+    }
+
     /**
      * Remove the specified resource from storage.
      *
@@ -234,11 +275,15 @@ public function edit(Collection $collection)
             }
         }
 
-Collection::destroy($collection->id);
+        $collection->deleteRecord();
         return redirect()->back()->with('message','Deleted Successfully');
     }
 
-
+    public function restore($id){
+        $collection = Collection::withDeleted()->findOrFail($id);
+        $collection->restoreRecord();
+        return redirect()->route('collections.trash')->with('message','Restored Successfully');
+    }
     public function getRefund($id){
         $payment = Payment::findOrFail($id);
         $patient = Patient::where('id',$payment->patient_id)->first();

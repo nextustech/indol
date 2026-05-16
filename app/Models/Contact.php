@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class Contact extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
 
     protected $fillable = [
         'name',
@@ -17,6 +18,9 @@ class Contact extends Model
         'message',
         'status',
         'is_read',
+        'isDeleted',
+        'deletedBy',
+        'deleted_at',
     ];
 
     protected $casts = [

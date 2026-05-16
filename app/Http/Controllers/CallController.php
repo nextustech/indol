@@ -100,8 +100,28 @@ class CallController extends Controller
      */
     public function destroy(Call $call)
     {
-        Call::destroy($call->id);
+        $call->deleteRecord();
         return redirect()->back()->with('success','Deleted Successfully');
 
+    }
+
+    public function trash()
+    {
+        $calls = Call::onlyDeleted()->latest('deleted_at')->get();
+        return view('calls.trash', compact('calls'));
+    }
+
+    public function restore($id)
+    {
+        $call = Call::withDeleted()->findOrFail($id);
+        $call->restoreRecord();
+        return redirect()->route('calls.trash')->with('message','Restored Successfully');
+    }
+
+    public function forceDelete($id)
+    {
+        $call = Call::withDeleted()->findOrFail($id);
+        $call->forceDeleteRecord();
+        return redirect()->route('calls.trash')->with('message','Permanently Deleted Successfully');
     }
 }

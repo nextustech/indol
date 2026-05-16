@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class Service extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
 
     protected $fillable = [
             'title',
@@ -17,6 +18,9 @@ class Service extends Model
             'extraImageA',
             'extraImageB',
             'short_description',
-            'description'
+            'description',
+            'isDeleted',
+            'deletedBy',
+            'deleted_at',
             ];
 }

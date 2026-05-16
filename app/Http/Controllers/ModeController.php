@@ -88,6 +88,27 @@ class ModeController extends Controller
      */
     public function destroy(Mode $mode)
     {
-        //
+        $mode->deleteRecord();
+        return redirect()->route('modes.index')->with('message','Deleted Successfully');
+    }
+
+    public function trash()
+    {
+        $modes = Mode::onlyDeleted()->latest('deleted_at')->get();
+        return view('modes.trash', compact('modes'));
+    }
+
+    public function restore($id)
+    {
+        $mode = Mode::withDeleted()->findOrFail($id);
+        $mode->restoreRecord();
+        return redirect()->route('modes.trash')->with('message','Restored Successfully');
+    }
+
+    public function forceDelete($id)
+    {
+        $mode = Mode::withDeleted()->findOrFail($id);
+        $mode->forceDeleteRecord();
+        return redirect()->route('modes.trash')->with('message','Permanently Deleted Successfully');
     }
 }

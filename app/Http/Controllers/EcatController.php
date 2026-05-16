@@ -109,7 +109,27 @@ class EcatController extends Controller
      */
     public function destroy(Ecat $ecat)
     {
-        Ecat::destroy($ecat->id);
+        $ecat->deleteRecord();
         return redirect()->route('ecat.index')->with('message','Deleted Successfully');
+    }
+
+    public function trash()
+    {
+        $ecats = Ecat::onlyDeleted()->latest('deleted_at')->get();
+        return view('ecat.trash', compact('ecats'));
+    }
+
+    public function restore($id)
+    {
+        $ecat = Ecat::withDeleted()->findOrFail($id);
+        $ecat->restoreRecord();
+        return redirect()->route('ecat.trash')->with('message','Restored Successfully');
+    }
+
+    public function forceDelete($id)
+    {
+        $ecat = Ecat::withDeleted()->findOrFail($id);
+        $ecat->forceDeleteRecord();
+        return redirect()->route('ecat.trash')->with('message','Permanently Deleted Successfully');
     }
 }

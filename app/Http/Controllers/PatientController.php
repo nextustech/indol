@@ -268,17 +268,52 @@ class PatientController extends Controller
         return view('schedules.show', compact('patient', 'dt', 'schedules', 'active', 'visits', 'branch'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Patient  $patient
-     * @return \Illuminate\Http\Response
-     */
+
     public function destroy(Patient $patient)
     {
-        Patient::destroy($patient->id);
+        $patient->deleteRecord();
 
         return redirect()->route('patients.index')->with('message', 'Deleted Successfully');
+    }
+
+    public function trash()
+    {
+        $patients = Patient::onlyDeleted()->latest('deleted_at')->paginate(20);
+        return view('patients.trash', compact('patients'));
+    }
+
+    public function restore($id){
+        $patient = Patient::withDeleted()->findOrFail($id);
+        $patient->restoreRecord();
+        return redirect()->route('patients.trash')->with('message','Restored Successfully');
+    }
+
+    public function forceDelete($id)
+    {
+        $patient = Patient::withDeleted()->findOrFail($id);
+        $patient->forceDeleteRecord();
+        return redirect()->route('patients.trash')->with('message','Permanently Deleted Successfully');
+    }
+
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Patient::whereIn('id', $request->ids)->each(fn($p) => $p->deleteRecord());
+        return back()->with('message', count($request->ids) . ' patients deleted successfully');
+    }
+
+    public function bulkRestore(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Patient::onlyDeleted()->whereIn('id', $request->ids)->each(fn($p) => $p->restoreRecord());
+        return back()->with('message', count($request->ids) . ' patients restored successfully');
+    }
+
+    public function bulkForceDelete(Request $request)
+    {
+        $request->validate(['ids' => 'required|array']);
+        Patient::onlyDeleted()->whereIn('id', $request->ids)->each(fn($p) => $p->forceDeleteRecord());
+        return back()->with('message', count($request->ids) . ' patients permanently deleted');
     }
 
     public function cr()

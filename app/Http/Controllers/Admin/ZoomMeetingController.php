@@ -134,7 +134,7 @@ class ZoomMeetingController extends Controller
                 $zoomService->deleteMeeting($zoomMeeting->meeting_id);
             }
 
-            $zoomMeeting->delete();
+            $zoomMeeting->deleteRecord();
 
             return redirect()->route('admin.zoom-meetings.index')
                 ->with('success', 'Zoom Meeting Deleted Successfully');
@@ -142,6 +142,26 @@ class ZoomMeetingController extends Controller
             return redirect()->back()
                 ->with('error', 'Failed to delete Zoom meeting: ' . $e->getMessage());
         }
+    }
+
+    public function trash()
+    {
+        $meetings = ZoomMeeting::onlyDeleted()->latest('deleted_at')->get();
+        return view('admin.zoom-meetings.trash', compact('meetings'));
+    }
+
+    public function restore($id)
+    {
+        $meeting = ZoomMeeting::withDeleted()->findOrFail($id);
+        $meeting->restoreRecord();
+        return redirect()->route('admin.zoom-meetings.trash')->with('success', 'Meeting restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $meeting = ZoomMeeting::withDeleted()->findOrFail($id);
+        $meeting->forceDeleteRecord();
+        return redirect()->route('admin.zoom-meetings.trash')->with('success', 'Meeting permanently deleted.');
     }
 
     public function startMeeting(ZoomMeeting $zoomMeeting)

@@ -14,14 +14,14 @@ use Illuminate\Support\Facades\Auth;
 
 class InvoiceController extends Controller
 {
-  
+
       public function __construct()
     {
         $this->middleware(['auth']);
         $this->middleware('permission:viewInvoice', ['only'=>['index']]);
         $this->middleware('permission:deleteInvoice', ['only'=>['destroy']]);
     }
-  
+
     public function invoice($id){
         $patient = Patient::findOrFail($id);
         $userId = Auth::id();
@@ -201,7 +201,27 @@ class InvoiceController extends Controller
      */
     public function destroy(Invoice $invoice)
     {
-        Invoice::destroy($invoice->id);
-        return redirect()->back();
+        $invoice->deleteRecord();
+        return redirect()->back()->with('message','Deleted Successfully');
     }
+
+    public function trash()
+    {
+        $invoices = Invoice::onlyDeleted()->latest('deleted_at')->get();
+        return view('invoices.trash', compact('invoices'));
+    }
+
+    public function restore($id){
+        $invoice = Invoice::withDeleted()->findOrFail($id);
+        $invoice->restoreRecord();
+        return redirect()->route('invoices.trash')->with('message','Restored Successfully');
+    }
+
+    public function forceDelete($id)
+    {
+        $invoice = Invoice::withDeleted()->findOrFail($id);
+        $invoice->forceDeleteRecord();
+        return redirect()->route('invoices.trash')->with('message','Permanently Deleted Successfully');
+    }
+
 }

@@ -60,10 +60,30 @@ class ContactController extends Controller
 
     public function destroy(Contact $contact)
     {
-        $contact->delete();
+        $contact->deleteRecord();
 
         return redirect()->route('admin.IndexContact')
             ->with('success', 'Contact message deleted successfully.');
+    }
+
+    public function trash()
+    {
+        $contacts = Contact::onlyDeleted()->latest('deleted_at')->paginate(15);
+        return view('admin.contacts.trash', compact('contacts'));
+    }
+
+    public function restore($id)
+    {
+        $contact = Contact::withDeleted()->findOrFail($id);
+        $contact->restoreRecord();
+        return redirect()->route('admin.contacts.trash')->with('success', 'Contact restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $contact = Contact::withDeleted()->findOrFail($id);
+        $contact->forceDeleteRecord();
+        return redirect()->route('admin.contacts.trash')->with('success', 'Contact permanently deleted.');
     }
 
     public function markRead(Contact $contact)

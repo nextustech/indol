@@ -122,7 +122,28 @@ class ServiceTypeController extends Controller
      */
     public function destroy(ServiceType $serviceType)
     {
-        //
+        $serviceType->deleteRecord();
+        return redirect()->route('servicetypes.index')->with('message','Deleted Successfully');
+    }
+
+    public function trash()
+    {
+        $serviceTypes = ServiceType::onlyDeleted()->latest('deleted_at')->get();
+        return view('servicetypes.trash', compact('serviceTypes'));
+    }
+
+    public function restore($id)
+    {
+        $serviceType = ServiceType::withDeleted()->findOrFail($id);
+        $serviceType->restoreRecord();
+        return redirect()->route('servicetypes.trash')->with('message','Restored Successfully');
+    }
+
+    public function forceDelete($id)
+    {
+        $serviceType = ServiceType::withDeleted()->findOrFail($id);
+        $serviceType->forceDeleteRecord();
+        return redirect()->route('servicetypes.trash')->with('message','Permanently Deleted Successfully');
     }
   
       public function checkService(Request $request)

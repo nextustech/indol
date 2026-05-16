@@ -64,9 +64,29 @@ class AppointmentTypeController extends Controller
 
     public function destroy(AppointmentType $appointmentType)
     {
-        $appointmentType->delete();
+        $appointmentType->deleteRecord();
 
         return redirect()->route('admin.appointment-types.index')
             ->with('success', 'Appointment type deleted successfully.');
+    }
+
+    public function trash()
+    {
+        $types = AppointmentType::onlyDeleted()->latest('deleted_at')->paginate(15);
+        return view('admin.appointment-types.trash', compact('types'));
+    }
+
+    public function restore($id)
+    {
+        $type = AppointmentType::withDeleted()->findOrFail($id);
+        $type->restoreRecord();
+        return redirect()->route('admin.appointment-types.trash')->with('success', 'Appointment type restored successfully.');
+    }
+
+    public function forceDelete($id)
+    {
+        $type = AppointmentType::withDeleted()->findOrFail($id);
+        $type->forceDeleteRecord();
+        return redirect()->route('admin.appointment-types.trash')->with('success', 'Appointment type permanently deleted.');
     }
 }

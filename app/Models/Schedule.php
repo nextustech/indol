@@ -4,12 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\SoftDeleteWithUser;
 
 class Schedule extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
 
-    protected $fillable =['user_id','branch_id','patient_id','pakage_id','title','payment_id','no','sittingDate','visit_order','status','attendedAt','extraSitting','treatment'];
+    protected $fillable =['user_id','branch_id','patient_id','pakage_id','title','payment_id','no','sittingDate','visit_order','status','attendedAt','extraSitting','treatment','isDeleted','deletedBy','deleted_at'];
 
     protected $casts = [
         'visit_order' => 'integer',

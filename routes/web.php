@@ -75,6 +75,105 @@ Route::group(['middleware' => 'isAdmin'], function () {
 
 Route::group(['middleware' => 'auth'], function () {
 
+    Route::get('audit-logs', [App\Http\Controllers\AuditLogController::class, 'index'])->name('audit-logs.index');
+
+    // Trash & bulk routes MUST be before resource routes to avoid {resource}/{id} conflicts
+    Route::prefix('patients')->name('patients.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\PatientController::class, 'trash'])->name('trash');
+        Route::post('bulk-destroy', [App\Http\Controllers\PatientController::class, 'bulkDestroy'])->name('bulkDestroy');
+        Route::post('bulk-restore', [App\Http\Controllers\PatientController::class, 'bulkRestore'])->name('bulkRestore');
+        Route::post('bulk-force-delete', [App\Http\Controllers\PatientController::class, 'bulkForceDelete'])->name('bulkForceDelete');
+        Route::post('{id}/restore', [App\Http\Controllers\PatientController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\PatientController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('payments')->name('payments.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\PaymentController::class, 'trash'])->name('trash');
+        Route::post('bulk-destroy', [App\Http\Controllers\PaymentController::class, 'bulkDestroy'])->name('bulkDestroy');
+        Route::post('bulk-restore', [App\Http\Controllers\PaymentController::class, 'bulkRestore'])->name('bulkRestore');
+        Route::post('bulk-force-delete', [App\Http\Controllers\PaymentController::class, 'bulkForceDelete'])->name('bulkForceDelete');
+        Route::post('{id}/restore', [App\Http\Controllers\PaymentController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\PaymentController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('expenses')->name('expenses.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\ExpenseController::class, 'trash'])->name('trash');
+        Route::post('bulk-destroy', [App\Http\Controllers\ExpenseController::class, 'bulkDestroy'])->name('bulkDestroy');
+        Route::post('bulk-restore', [App\Http\Controllers\ExpenseController::class, 'bulkRestore'])->name('bulkRestore');
+        Route::post('bulk-force-delete', [App\Http\Controllers\ExpenseController::class, 'bulkForceDelete'])->name('bulkForceDelete');
+        Route::post('{id}/restore', [App\Http\Controllers\ExpenseController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\ExpenseController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\UserController::class, 'trash'])->name('trash');
+        Route::post('bulk-destroy', [App\Http\Controllers\UserController::class, 'bulkDestroy'])->name('bulkDestroy');
+        Route::post('bulk-restore', [App\Http\Controllers\UserController::class, 'bulkRestore'])->name('bulkRestore');
+        Route::post('bulk-force-delete', [App\Http\Controllers\UserController::class, 'bulkForceDelete'])->name('bulkForceDelete');
+        Route::post('{id}/restore', [App\Http\Controllers\UserController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\UserController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('branches')->name('branches.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\BranchController::class, 'trash'])->name('trash');
+        Route::post('bulk-destroy', [App\Http\Controllers\BranchController::class, 'bulkDestroy'])->name('bulkDestroy');
+        Route::post('bulk-restore', [App\Http\Controllers\BranchController::class, 'bulkRestore'])->name('bulkRestore');
+        Route::post('bulk-force-delete', [App\Http\Controllers\BranchController::class, 'bulkForceDelete'])->name('bulkForceDelete');
+        Route::post('{id}/restore', [App\Http\Controllers\BranchController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\BranchController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('collections')->name('collections.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\CollectionController::class, 'trash'])->name('trash');
+        Route::post('bulk-destroy', [App\Http\Controllers\CollectionController::class, 'bulkDestroy'])->name('bulkDestroy');
+        Route::post('bulk-restore', [App\Http\Controllers\CollectionController::class, 'bulkRestore'])->name('bulkRestore');
+        Route::post('bulk-force-delete', [App\Http\Controllers\CollectionController::class, 'bulkForceDelete'])->name('bulkForceDelete');
+        Route::post('{id}/restore', [App\Http\Controllers\CollectionController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\CollectionController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\InvoiceController::class, 'trash'])->name('trash');
+        Route::post('{id}/restore', [App\Http\Controllers\InvoiceController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\InvoiceController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('schedules')->name('schedules.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\ScheduleController::class, 'trash'])->name('trash');
+        Route::post('{id}/restore', [App\Http\Controllers\ScheduleController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\ScheduleController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('servicetypes')->name('servicetypes.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\ServiceTypeController::class, 'trash'])->name('trash');
+        Route::post('{id}/restore', [App\Http\Controllers\ServiceTypeController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\ServiceTypeController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('ecat')->name('ecat.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\EcatController::class, 'trash'])->name('trash');
+        Route::post('{id}/restore', [App\Http\Controllers\EcatController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\EcatController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('calls')->name('calls.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\CallController::class, 'trash'])->name('trash');
+        Route::post('{id}/restore', [App\Http\Controllers\CallController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\CallController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('bills')->name('bills.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\BillController::class, 'trash'])->name('trash');
+        Route::post('{id}/restore', [App\Http\Controllers\BillController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\BillController::class, 'forceDelete'])->name('forceDelete');
+    });
+
+    Route::prefix('modes')->name('modes.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\ModeController::class, 'trash'])->name('trash');
+        Route::post('{id}/restore', [App\Http\Controllers\ModeController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\ModeController::class, 'forceDelete'])->name('forceDelete');
+    });
+
     // Protect admin-only resources from HomePhysiotherapist
     Route::middleware(['homePhysio'])->group(function () {
         Route::resource('branches', App\Http\Controllers\BranchController::class)->except(['index', 'show']);
@@ -203,20 +302,59 @@ Route::group(['middleware' => 'auth'], function () {
 
         Route::resource('appointments', App\Http\Controllers\AppointmentController::class);
         Route::patch('appointments/{appointment}/status', [App\Http\Controllers\AppointmentController::class, 'updateStatus'])->name('appointments.updateStatus');
+        Route::get('appointments/trash', [App\Http\Controllers\AppointmentController::class, 'trash'])->name('appointments.trash');
+        Route::post('appointments/{id}/restore', [App\Http\Controllers\AppointmentController::class, 'restore'])->name('appointments.restore');
+        Route::delete('appointments/{id}/force', [App\Http\Controllers\AppointmentController::class, 'forceDelete'])->name('appointments.forceDelete');
+
         Route::resource('appointment-types', App\Http\Controllers\AppointmentTypeController::class);
+        Route::get('appointment-types/trash', [App\Http\Controllers\AppointmentTypeController::class, 'trash'])->name('appointment-types.trash');
+        Route::post('appointment-types/{id}/restore', [App\Http\Controllers\AppointmentTypeController::class, 'restore'])->name('appointment-types.restore');
+        Route::delete('appointment-types/{id}/force', [App\Http\Controllers\AppointmentTypeController::class, 'forceDelete'])->name('appointment-types.forceDelete');
+
         Route::resource('availability-windows', App\Http\Controllers\AvailabilityWindowController::class);
+        Route::get('availability-windows/trash', [App\Http\Controllers\AvailabilityWindowController::class, 'trash'])->name('availability-windows.trash');
+        Route::post('availability-windows/{id}/restore', [App\Http\Controllers\AvailabilityWindowController::class, 'restore'])->name('availability-windows.restore');
+        Route::delete('availability-windows/{id}/force', [App\Http\Controllers\AvailabilityWindowController::class, 'forceDelete'])->name('availability-windows.forceDelete');
+
         Route::resource('holidays', App\Http\Controllers\HolidayController::class);
+        Route::get('holidays/trash', [App\Http\Controllers\HolidayController::class, 'trash'])->name('holidays.trash');
+        Route::post('holidays/{id}/restore', [App\Http\Controllers\HolidayController::class, 'restore'])->name('holidays.restore');
+        Route::delete('holidays/{id}/force', [App\Http\Controllers\HolidayController::class, 'forceDelete'])->name('holidays.forceDelete');
+
         Route::resource('branch-appointment-types', App\Http\Controllers\Admin\BranchAppointmentTypeController::class);
+        Route::get('branch-appointment-types/trash', [App\Http\Controllers\Admin\BranchAppointmentTypeController::class, 'trash'])->name('branch-appointment-types.trash');
+        Route::post('branch-appointment-types/{id}/restore', [App\Http\Controllers\Admin\BranchAppointmentTypeController::class, 'restore'])->name('branch-appointment-types.restore');
+        Route::delete('branch-appointment-types/{id}/force', [App\Http\Controllers\Admin\BranchAppointmentTypeController::class, 'forceDelete'])->name('branch-appointment-types.forceDelete');
+
         Route::resource('sliders', App\Http\Controllers\Admin\SliderController::class);
+        Route::get('sliders/trash', [App\Http\Controllers\Admin\SliderController::class, 'trash'])->name('sliders.trash');
+        Route::post('sliders/{id}/restore', [App\Http\Controllers\Admin\SliderController::class, 'restore'])->name('sliders.restore');
+        Route::delete('sliders/{id}/force', [App\Http\Controllers\Admin\SliderController::class, 'forceDelete'])->name('sliders.forceDelete');
+
         Route::resource('blogs', App\Http\Controllers\Admin\BlogPostController::class);
+        Route::get('blogs/trash', [App\Http\Controllers\Admin\BlogPostController::class, 'trash'])->name('blogs.trash');
+        Route::post('blogs/{id}/restore', [App\Http\Controllers\Admin\BlogPostController::class, 'restore'])->name('blogs.restore');
+        Route::delete('blogs/{id}/force', [App\Http\Controllers\Admin\BlogPostController::class, 'forceDelete'])->name('blogs.forceDelete');
+
         Route::resource('blog.categories', App\Http\Controllers\Admin\BlogCategoryController::class);
+        Route::get('blog/categories/trash', [App\Http\Controllers\Admin\BlogCategoryController::class, 'trash'])->name('blog.categories.trash');
+        Route::post('blog/categories/{id}/restore', [App\Http\Controllers\Admin\BlogCategoryController::class, 'restore'])->name('blog.categories.restore');
+        Route::delete('blog/categories/{id}/force', [App\Http\Controllers\Admin\BlogCategoryController::class, 'forceDelete'])->name('blog.categories.forceDelete');
+
         Route::resource('blog.tags', App\Http\Controllers\Admin\BlogTagController::class);
+        Route::get('blog/tags/trash', [App\Http\Controllers\Admin\BlogTagController::class, 'trash'])->name('blog.tags.trash');
+        Route::post('blog/tags/{id}/restore', [App\Http\Controllers\Admin\BlogTagController::class, 'restore'])->name('blog.tags.restore');
+        Route::delete('blog/tags/{id}/force', [App\Http\Controllers\Admin\BlogTagController::class, 'forceDelete'])->name('blog.tags.forceDelete');
+
         Route::get('blog/comments', [App\Http\Controllers\Admin\BlogPostController::class, 'comments'])->name('blog.comments.index');
         Route::post('blog/comments/{comment}/approve', [App\Http\Controllers\Admin\BlogPostController::class, 'approveComment'])->name('blog.comments.approve');
         Route::delete('blog/comments/{comment}', [App\Http\Controllers\Admin\BlogPostController::class, 'deleteComment'])->name('blog.comments.delete');
 
         Route::resource('contacts', App\Http\Controllers\ContactController::class)->only(['index', 'show', 'destroy']);
         Route::get('/contacts', [App\Http\Controllers\ContactController::class, 'adminIndex'])->name('IndexContact');
+        Route::get('contacts/trash', [App\Http\Controllers\ContactController::class, 'trash'])->name('contacts.trash');
+        Route::post('contacts/{id}/restore', [App\Http\Controllers\ContactController::class, 'restore'])->name('contacts.restore');
+        Route::delete('contacts/{id}/force', [App\Http\Controllers\ContactController::class, 'forceDelete'])->name('contacts.forceDelete');
         Route::patch('contacts/{contact}/mark-read', [App\Http\Controllers\ContactController::class, 'markRead'])->name('contacts.markRead');
         Route::patch('contacts/{contact}/mark-unread', [App\Http\Controllers\ContactController::class, 'markUnread'])->name('contacts.markUnread');
 
@@ -224,8 +362,12 @@ Route::group(['middleware' => 'auth'], function () {
         Route::post('zoom-meetings/{zoomMeeting}/start', [App\Http\Controllers\Admin\ZoomMeetingController::class, 'startMeeting'])->name('zoom-meetings.start');
         Route::post('zoom-meetings/{zoomMeeting}/end', [App\Http\Controllers\Admin\ZoomMeetingController::class, 'endMeeting'])->name('zoom-meetings.end');
         Route::post('zoom-meetings/{zoomMeeting}/sync', [App\Http\Controllers\Admin\ZoomMeetingController::class, 'syncMeeting'])->name('zoom-meetings.sync');
+        Route::get('zoom-meetings/trash', [App\Http\Controllers\Admin\ZoomMeetingController::class, 'trash'])->name('zoom-meetings.trash');
+        Route::post('zoom-meetings/{id}/restore', [App\Http\Controllers\Admin\ZoomMeetingController::class, 'restore'])->name('zoom-meetings.restore');
+        Route::delete('zoom-meetings/{id}/force', [App\Http\Controllers\Admin\ZoomMeetingController::class, 'forceDelete'])->name('zoom-meetings.forceDelete');
 
     });
+
 
 });
 

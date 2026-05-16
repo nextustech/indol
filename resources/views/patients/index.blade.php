@@ -93,8 +93,11 @@
                     <div class="col-lg-12">
 
                         <div class="card card-primary card-outline">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h5 class="m-0">All Patients</h5>
+                                <a href="{{ route('patients.trash') }}" class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i> View Trash
+                                </a>
                             </div>
 
                             <div class="card-body">
@@ -102,9 +105,13 @@
                                 @if (Session::has('message'))
                                     <div class="alert alert-success text-center">{{ session('message') }}</div>
                                 @endif
+
+                                @include('partials.bulk-actions')
+
                                 <table class="table table-sm">
                                     <thead>
                                     <tr>
+                                        <th><input type="checkbox" id="select-all" onclick="toggleSelectAll(this)"></th>
                                         <th>Reg Date</th>
                                         <th>Patient ID</th>
                                         <th>Name</th>
@@ -124,6 +131,7 @@
                                                     $regDate = new DateTime($source);
                                                     ?>
 
+                                                <td><input type="checkbox" class="bulk-checkbox" value="{{ $patient->id }}" onchange="updateBulkBar()"></td>
                                                 <td>{{ $regDate->format(" j M, y") }}</td>
                                                 <td>GPC - {{ $patient->id }}</td>
                                                 <td><a href="{{ route('patients.show',$patient) }}" data-toggle="tooltip" data-placement="top" title="{{ $patient->diagnosis }}">

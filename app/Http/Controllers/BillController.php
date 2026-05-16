@@ -60,6 +60,27 @@ class BillController extends Controller
      */
     public function destroy(Bill $bill)
     {
-        //
+        $bill->deleteRecord();
+        return redirect()->back()->with('message','Deleted Successfully');
+    }
+
+    public function trash()
+    {
+        $bills = Bill::onlyDeleted()->latest('deleted_at')->get();
+        return view('bills.trash', compact('bills'));
+    }
+
+    public function restore($id)
+    {
+        $bill = Bill::withDeleted()->findOrFail($id);
+        $bill->restoreRecord();
+        return redirect()->route('bills.trash')->with('message','Restored Successfully');
+    }
+
+    public function forceDelete($id)
+    {
+        $bill = Bill::withDeleted()->findOrFail($id);
+        $bill->forceDeleteRecord();
+        return redirect()->route('bills.trash')->with('message','Permanently Deleted Successfully');
     }
 }

@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Traits\SoftDeleteWithUser;
 
 class SmsLog extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeleteWithUser;
 
     protected $fillable = [
         'to',
@@ -24,6 +25,9 @@ class SmsLog extends Model
         'user_id',
         'sent_at',
         'delivered_at',
+        'isDeleted',
+        'deletedBy',
+        'deleted_at',
     ];
 
     protected $casts = [
