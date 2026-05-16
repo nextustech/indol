@@ -84,10 +84,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            @can('view-trash-patient')
                             <a href="{{ route('patients.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Trash</p>
                             </a>
+                            @endcan
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('searchPatientByReg') }}" class="nav-link">
@@ -122,10 +124,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            @can('view-trash-expense')
                             <a href="{{ route('expenses.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Trash</p>
                             </a>
+                            @endcan
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('expenses.create') }}" class="nav-link">
@@ -147,10 +151,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            @can('view-trash-ecat')
                             <a href="{{ route('ecat.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Category Trash</p>
                             </a>
+                            @endcan
                         </li>
                         @endif
                     </ul>
@@ -234,10 +240,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            @can('view-trash-user')
                             <a href="{{ route('users.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Trash</p>
                             </a>
+                            @endcan
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('users.create') }}" class="nav-link">
@@ -265,16 +273,20 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            @can('view-trash-invoice')
                             <a href="{{ route('invoices.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Trash</p>
                             </a>
+                            @endcan
                         </li>
                         <li class="nav-item">
+                            @can('view-trash-bill')
                             <a href="{{ route('bills.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Bills Trash</p>
                             </a>
+                            @endcan
                         </li>
 
 
@@ -297,10 +309,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            @can('view-trash-branch')
                             <a href="{{ route('branches.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Trash</p>
                             </a>
+                            @endcan
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('branches.create') }}" class="nav-link">
@@ -327,10 +341,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            @can('view-trash-mode')
                             <a href="{{ route('modes.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Trash</p>
                             </a>
+                            @endcan
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('modes.create') }}" class="nav-link">
@@ -369,10 +385,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            @can('view-trash-servicetype')
                             <a href="{{ route('servicetypes.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Trash</p>
                             </a>
+                            @endcan
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('servicetypes.create') }}" class="nav-link">
@@ -524,10 +542,12 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            @can('view-trash-zoom-meeting')
                             <a href="{{ route('admin.zoom-meetings.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Trash</p>
                             </a>
+                            @endcan
                         </li>
                     </ul>
                 </li>
@@ -548,19 +568,24 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                             </a>
                         </li>
                         <li class="nav-item">
+                            @can('view-trash-contact')
                             <a href="{{ route('admin.contacts.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Trash</p>
                             </a>
+                            @endcan
                         </li>
                     </ul>
                 </li>
                 <li class="nav-item">
+                    @can('view-audit-logs')
                     <a href="{{ route('audit-logs.index') }}" class="nav-link">
                         <i class="nav-icon fas fa-clipboard-list"></i>
                         <p>Audit Log</p>
                     </a>
+                    @endcan
                 </li>
+                @if(Auth::user()->can('view-trash-patient') || Auth::user()->can('view-trash-payment') || Auth::user()->can('view-trash-collection') || Auth::user()->can('view-trash-schedule') || Auth::user()->can('view-trash-call'))
                 <li class="nav-item">
                     <a href="#" class="nav-link bg-dark">
                         <i class="nav-icon fas fa-trash"></i>
@@ -570,38 +595,49 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
+                        @can('view-trash-patient')
                         <li class="nav-item">
                             <a href="{{ route('patients.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Patients</p>
                             </a>
                         </li>
+                        @endcan
+                        @can('view-trash-payment')
                         <li class="nav-item">
                             <a href="{{ route('payments.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Payments</p>
                             </a>
                         </li>
+                        @endcan
+                        @can('view-trash-collection')
                         <li class="nav-item">
                             <a href="{{ route('collections.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Collections</p>
                             </a>
                         </li>
+                        @endcan
+                        @can('view-trash-schedule')
                         <li class="nav-item">
                             <a href="{{ route('schedules.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Schedules</p>
                             </a>
                         </li>
+                        @endcan
+                        @can('view-trash-call')
                         <li class="nav-item">
                             <a href="{{ route('calls.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Calls</p>
                             </a>
                         </li>
+                        @endcan
                     </ul>
                 </li>
+                @endif
                 <li class="nav-item">
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-user"></i>
