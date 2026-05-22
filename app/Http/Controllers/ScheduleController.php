@@ -326,6 +326,7 @@ public function makeAbsent(Request $request, Schedule $schedule)
             'user_id'      => $schedule->user_id,
             'patient_id'   => $schedule->patient_id,
             'payment_id'   => $schedule->payment_id,
+            'branch_id'   => $schedule->branch_id,
             'title'        => $this->ordinal($extraCount + 1) . ' Extra Sitting',
             'extraSitting' => 1,
             'sittingDate'  => $extraDate,
