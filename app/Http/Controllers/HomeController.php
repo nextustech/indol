@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Assessment;
 use App\Models\Branch;
 use App\Models\Collection;
 use App\Models\Expense;
@@ -195,6 +196,29 @@ class HomeController extends Controller
             }
         }])->get();
 
+        // ✅ Today's Assessments
+        $todayAssessmentsQuery = Assessment::whereDate('assessment_date', Carbon::today())
+            ->whereIn('branch_id', $branchIds);
+
+        if ($isHomePhysio) {
+            $todayAssessmentsQuery->where('assessed_by', $user->id);
+        }
+
+        $todayAssessments = $todayAssessmentsQuery->count();
+
+        // ✅ Recent Assessments List
+        $recentAssessmentsQuery = Assessment::with(['patient', 'assessedBy'])
+            ->whereIn('branch_id', $branchIds);
+
+        if ($isHomePhysio) {
+            $recentAssessmentsQuery->where('assessed_by', $user->id);
+        }
+
+        $recentAssessments = $recentAssessmentsQuery
+            ->latest('assessment_date')
+            ->limit(10)
+            ->get();
+
         // ✅ Active Packages (with role-based filtering)
         $activePackagesQuery = Payment::with([
             'branch:id,branchName',
@@ -228,7 +252,9 @@ class HomeController extends Controller
             'netCashToday',
             'serviceTypes',
             'activePackages',
-            'paymentModes'
+            'paymentModes',
+            'todayAssessments',
+            'recentAssessments'
         ));
     }
 

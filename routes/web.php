@@ -205,6 +205,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::patch('hide-patient/{patient}', [App\Http\Controllers\PatientController::class, 'hidePatient'])->name('hidePatient');
     Route::get('sea', [App\Http\Controllers\PatientController::class, 'cr'])->name('search');
     Route::get('search', [App\Http\Controllers\PatientController::class, 'search']);
+    Route::get('patients-json', [App\Http\Controllers\PatientController::class, 'searchJson'])->name('patients.json');
     Route::get('exp-data', [App\Http\Controllers\ExpenseController::class, 'expData'])->name('expData');
     Route::get('receipt', [App\Http\Controllers\PaymentController::class, 'receipt'])->name('receipt');
     Route::get('bill', [App\Http\Controllers\PaymentController::class, 'bill'])->name('bill');
@@ -282,6 +283,35 @@ Route::group(['middleware' => 'auth'], function () {
 
     Route::get('change-branch/{id}', [App\Http\Controllers\PatientController::class, 'getChangeBranch'])->name('getChangeBranch');
     Route::post('changeBranch/{id}', [App\Http\Controllers\PatientController::class, 'changeBranch'])->name('changeBranch');
+
+    // ===== Assessments =====
+    Route::prefix('assessments')->name('assessments.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\AssessmentController::class, 'trash'])->name('trash');
+        Route::post('bulk-destroy', [App\Http\Controllers\AssessmentController::class, 'bulkDestroy'])->name('bulkDestroy');
+        Route::post('bulk-restore', [App\Http\Controllers\AssessmentController::class, 'bulkRestore'])->name('bulkRestore');
+        Route::post('bulk-force-delete', [App\Http\Controllers\AssessmentController::class, 'bulkForceDelete'])->name('bulkForceDelete');
+        Route::post('{id}/restore', [App\Http\Controllers\AssessmentController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\AssessmentController::class, 'forceDelete'])->name('forceDelete');
+    });
+    Route::post('dropdown-options/quick', [App\Http\Controllers\DropdownOptionController::class, 'storeQuick'])->name('dropdown-options.quick');
+    Route::resource('assessments', App\Http\Controllers\AssessmentController::class);
+    Route::get('assessmentPrint/{assessment}', [App\Http\Controllers\AssessmentController::class, 'print'])->name('assessmentPrint');
+
+    // ===== Treatment Plans =====
+    Route::prefix('treatment-plans')->name('treatment-plans.')->group(function () {
+        Route::get('trash', [App\Http\Controllers\TreatmentPlanController::class, 'trash'])->name('trash');
+        Route::post('bulk-destroy', [App\Http\Controllers\TreatmentPlanController::class, 'bulkDestroy'])->name('bulkDestroy');
+        Route::post('bulk-restore', [App\Http\Controllers\TreatmentPlanController::class, 'bulkRestore'])->name('bulkRestore');
+        Route::post('bulk-force-delete', [App\Http\Controllers\TreatmentPlanController::class, 'bulkForceDelete'])->name('bulkForceDelete');
+        Route::post('{id}/restore', [App\Http\Controllers\TreatmentPlanController::class, 'restore'])->name('restore');
+        Route::delete('{id}/force', [App\Http\Controllers\TreatmentPlanController::class, 'forceDelete'])->name('forceDelete');
+    });
+    Route::resource('treatment-plans', App\Http\Controllers\TreatmentPlanController::class);
+
+    // ===== Exercises (nested under treatment plans) =====
+    Route::post('treatment-plans/{treatment_plan}/exercises', [App\Http\Controllers\ExercisePrescriptionController::class, 'store'])->name('treatment-plans.exercises.store');
+    Route::put('exercises/{exercise}', [App\Http\Controllers\ExercisePrescriptionController::class, 'update'])->name('exercises.update');
+    Route::delete('exercises/{exercise}', [App\Http\Controllers\ExercisePrescriptionController::class, 'destroy'])->name('exercises.destroy');
 
     Route::get('discontinued', [App\Http\Controllers\HomeController::class, 'discontinued'])->name('discontinued');
 

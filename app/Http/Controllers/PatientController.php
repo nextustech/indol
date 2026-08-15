@@ -187,13 +187,22 @@ class PatientController extends Controller
         // -----------------------
         $productImages = Image::where('patient_id', $patient->id)->get();
 
+        // -----------------------
+        // 📋 ASSESSMENTS
+        // -----------------------
+        $assessments = \App\Models\Assessment::where('patient_id', $patient->id)
+            ->with('assessedBy')
+            ->latest('assessment_date')
+            ->get();
+
         return view('patients.show', compact(
             'patient',
             'dt',
             'schedules',
             'active',
             'attendedSittings',
-            'productImages'
+            'productImages',
+            'assessments'
         ));
     }
 
@@ -357,10 +366,10 @@ class PatientController extends Controller
                         '<td>'.$c->name.'</td>'.
                         '<td>'.$c->age.'</td>'.
                         '<td>'.$c->mobile.'</td>'.
-                        '<td><a href="'.route('patients.show', ['id' => $c->id]).'" class="btn btn-success btn-sm">
+                        '<td><a href="'.route('patients.show', $c->id).'" class="btn btn-success btn-sm">
                                                                 <i class="fa fa-eye"></i>
                                                             </a>
-                            <a href="'.route('patients.edit', ['id' => $c->id]).'" class="btn btn-warning btn-sm">
+                            <a href="'.route('patients.edit', $c->id).'" class="btn btn-warning btn-sm">
                                                                 <i class="fa fa-pencil"></i>
                                                             </a></td>'.
                         '</tr>';
@@ -374,6 +383,40 @@ class PatientController extends Controller
             return Response($Output);
 
         }
+    }
+
+    public function searchJson(Request $request)
+    {
+        $user = loggedUser();
+        $branchIds = $user->branches->pluck('id')->toArray();
+
+        $patients = Patient::whereHas('branches', function ($q) use ($branchIds) {
+            $q->whereIn('branches.id', $branchIds);
+        })
+            ->where(function ($q) use ($request) {
+                $term = $request->input('term', $request->input('q', ''));
+                $q->where('name', 'LIKE', '%' . $term . '%')
+                    ->orWhere('phone', 'LIKE', '%' . $term . '%')
+                    ->orWhere('mobile', 'LIKE', '%' . $term . '%')
+                    ->orWhere('patientId', 'LIKE', '%' . $term . '%');
+            });
+
+        if ($user->isHomePhysiotherapist()) {
+            $patients->where('created_by', $user->id);
+        }
+
+        $patients = $patients->limit(20)->get();
+
+        $results = $patients->map(function ($patient) {
+            return [
+                'id' => $patient->id,
+                'text' => $patient->name . ' (GPC-' . $patient->patientId . ')',
+                'mobile' => $patient->mobile,
+                'age' => $patient->age,
+            ];
+        });
+
+        return response()->json(['results' => $results]);
     }
 
     public function searchP(Request $request)

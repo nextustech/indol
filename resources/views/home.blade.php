@@ -145,6 +145,54 @@
 
                     </div>
                 </div>
+                @if($recentAssessments->count() > 0)
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card card-secondary">
+                            <div class="card-header">
+                                <h5 class="card-title">Recent Assessments ({{ $recentAssessments->count() }})</h5>
+                                <div class="card-tools">
+                                    <a href="{{ route('assessments.index') }}" class="btn btn-sm btn-primary">View All</a>
+                                </div>
+                            </div>
+                            <div class="card-body table-responsive p-0">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Patient</th>
+                                            <th>Type</th>
+                                            <th>Assessed By</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($recentAssessments as $ass)
+                                        <tr>
+                                            <td>{{ $ass->assessment_date->format('d M y') }}</td>
+                                            <td>{{ $ass->patient->name ?? 'N/A' }}</td>
+                                            <td>{{ ucfirst($ass->type) }}</td>
+                                            <td>{{ $ass->assessedBy->name ?? 'N/A' }}</td>
+                                            <td>
+                                                @if($ass->status == 'completed')
+                                                    <span class="badge badge-success">Completed</span>
+                                                @else
+                                                    <span class="badge badge-warning">Draft</span>
+                                                @endif
+                                            </td>
+                                            <td>
+                                                <a href="{{ route('assessments.show', $ass->id) }}" class="btn btn-sm btn-info"><i class="fa fa-eye"></i></a>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
             </div><!-- /.container-fluid -->
         </div>
         <!-- /.content -->

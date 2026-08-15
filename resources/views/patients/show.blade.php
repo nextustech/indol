@@ -169,7 +169,7 @@
                                     <ul class="nav nav-pills">
                                         <li class="nav-item"><a class="nav-link active" href="#activity" data-toggle="tab">Activity</a></li>
                                         <li class="nav-item"><a class="nav-link" href="#timeline" data-toggle="tab">Reports</a></li>
-
+                                        <li class="nav-item"><a class="nav-link" href="#assessments" data-toggle="tab">Assessments</a></li>
                                     </ul>
                                 </div>
                                 <div class="card-tool float-right">
@@ -356,6 +356,54 @@
                                     </div>
                                     <!-- /.tab-pane -->
 
+                                    <div class="tab-pane" id="assessments">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mt-1">Patient Assessments</h6>
+                                            @can('create-Assessment')
+                                            <a href="{{ route('assessments.create', ['patient_id' => $patient->id]) }}" class="btn btn-primary btn-sm">
+                                                <i class="fa fa-plus"></i> New Assessment
+                                            </a>
+                                            @endcan
+                                        </div>
+                                        <table class="table table-bordered table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Type</th>
+                                                    <th>Assessed By</th>
+                                                    <th>Status</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($assessments as $ass)
+                                                <tr>
+                                                    <td>{{ $ass->assessment_date->format('d M y') }}</td>
+                                                    <td>{{ ucfirst($ass->type) }}</td>
+                                                    <td>{{ $ass->assessedBy->name ?? 'N/A' }}</td>
+                                                    <td>
+                                                        @if($ass->status == 'completed')
+                                                            <span class="badge badge-success">Completed</span>
+                                                        @else
+                                                            <span class="badge badge-warning">Draft</span>
+                                                        @endif
+                                                    </td>
+                                                    <td>
+                                                        @can('show-AssessmentProfile')
+                                                        <a href="{{ route('assessments.show', $ass->id) }}" class="btn btn-info btn-xs"><i class="fa fa-eye"></i></a>
+                                                        @endcan
+                                                        @can('print-Assessment')
+                                                        <a href="{{ route('assessmentPrint', $ass->id) }}" class="btn btn-success btn-xs" target="_blank"><i class="fa fa-print"></i></a>
+                                                        @endcan
+                                                    </td>
+                                                </tr>
+                                                @endforeach
+                                                @if($assessments->count() == 0)
+                                                <tr><td colspan="5" class="text-center">No assessments found for this patient</td></tr>
+                                                @endif
+                                            </tbody>
+                                        </table>
+                                    </div>
                                     <div class="tab-pane" id="settings">
                                         settings
                                     </div>

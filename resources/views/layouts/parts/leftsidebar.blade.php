@@ -72,41 +72,70 @@ $isAdmin = $user && in_array($user->roles->pluck('name')->first(), ['Super-Admin
                     <a href="#" class="nav-link">
                         <i class="nav-icon fas fa-user"></i>
                         <p>
-                            Patients
+                            Service Types
                             <i class="right fas fa-angle-left"></i>
                         </p>
                     </a>
                     <ul class="nav nav-treeview">
                         <li class="nav-item">
-                            <a href="{{ route('patients.index') }}" class="nav-link">
+                            <a href="{{ route('servicetypes.index') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>Patients List</p>
+                                <p>Service Type List</p>
                             </a>
                         </li>
                         <li class="nav-item">
-                            @can('view-trash-patient')
-                            <a href="{{ route('patients.trash') }}" class="nav-link">
+                            @can('view-trash-servicetype')
+                            <a href="{{ route('servicetypes.trash') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon text-danger"></i>
                                 <p>Trash</p>
                             </a>
                             @endcan
                         </li>
                         <li class="nav-item">
-                            <a href="{{ route('searchPatientByReg') }}" class="nav-link">
+                            <a href="{{ route('servicetypes.create') }}" class="nav-link">
                                 <i class="far fa-circle nav-icon"></i>
-                                <p>Search By Reg. Date</p>
+                                <p>Add Service Type</p>
                             </a>
                         </li>
+
                     </ul>
                 </li>
-                @else
-                <li class="nav-item">
-                    <a href="{{ route('patients.index') }}" class="nav-link">
-                        <i class="nav-icon fas fa-user"></i>
-                        <p>My Patients</p>
-                    </a>
-                </li>
                 @endif
+                @can('list-Assessment')
+                <li class="nav-item">
+                    <a href="#" class="nav-link">
+                        <i class="nav-icon fas fa-clipboard-list"></i>
+                        <p>
+                            Assessments
+                            <i class="right fas fa-angle-left"></i>
+                        </p>
+                    </a>
+                    <ul class="nav nav-treeview">
+                        <li class="nav-item">
+                            <a href="{{ route('assessments.index') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>All Assessments</p>
+                            </a>
+                        </li>
+                        @can('create-Assessment')
+                        <li class="nav-item">
+                            <a href="{{ route('assessments.create') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon"></i>
+                                <p>New Assessment</p>
+                            </a>
+                        </li>
+                        @endcan
+                        @can('view-trash-assessment')
+                        <li class="nav-item">
+                            <a href="{{ route('assessments.trash') }}" class="nav-link">
+                                <i class="far fa-circle nav-icon text-danger"></i>
+                                <p>Trash</p>
+                            </a>
+                        </li>
+                        @endcan
+                    </ul>
+                </li>
+                @endcan
               	@can('list-Expense')
                  <li class="nav-item">
                     <a href="#" class="nav-link">

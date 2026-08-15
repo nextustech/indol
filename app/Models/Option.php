@@ -8,7 +8,7 @@ use App\Traits\SoftDeleteWithUser;
 
 class Option extends Model
 {
-    use HasFactory, SoftDeleteWithUser;
+    use HasFactory;
     protected $guarded = [];
     public $timestamps = false;
 }

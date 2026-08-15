@@ -136,3 +136,20 @@
     <!-- ./col -->
 </div>
 <!-- /.row -->
+
+<!-- Small boxes (Stat box) Row 3 -->
+<div class="row">
+    <div class="col-lg-3 col-6">
+        <div class="small-box bg-secondary">
+            <div class="inner">
+                <h3>{{ $todayAssessments ?? 0 }}</h3>
+                <p>Today's Assessments</p>
+            </div>
+            <div class="icon">
+                <i class="ion ion-document-text"></i>
+            </div>
+            <a href="{{ route('assessments.index') }}" class="small-box-footer">View All <i class="fas fa-arrow-circle-right"></i></a>
+        </div>
+    </div>
+</div>
+<!-- /.row -->
