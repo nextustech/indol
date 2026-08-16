@@ -1,0 +1,101 @@
+# Indolia (Rx Physio) - Dokploy / Docker Compose stack
+#
+# Services: app (nginx + php-fpm), queue (Laravel database queue worker), db (mysql).
+#
+# Required environment variables (set them in Dokploy -> Environment):
+#   APP_KEY, APP_URL, DB_DATABASE, DB_USERNAME, DB_PASSWORD, DB_ROOT_PASSWORD
+# Optional: APP_PORT, MAIL_*, REDIS_*
+#
+# Compose performs its own ${VAR} interpolation; Dokploy also injects the
+# variables you configure in the project Environment tab.
+
+x-app-common: &app-common
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  environment: &app-env
+    APP_ENV: production
+    APP_DEBUG: false
+    APP_KEY: ${APP_KEY:?APP_KEY is required}
+    APP_URL: ${APP_URL:-https://indolia.de}
+    LOG_CHANNEL: stack
+    DB_CONNECTION: mysql
+    DB_HOST: db
+    DB_PORT: 3306
+    DB_DATABASE: ${DB_DATABASE:-indolia}
+    DB_USERNAME: ${DB_USERNAME:-indolia}
+    DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    BROADCAST_DRIVER: log
+    CACHE_DRIVER: file
+    FILESYSTEM_DISK: local
+    QUEUE_CONNECTION: database
+    SESSION_DRIVER: file
+    SESSION_LIFETIME: 120
+    MAIL_MAILER: ${MAIL_MAILER:-smtp}
+    MAIL_HOST: ${MAIL_HOST:-smtp}
+    MAIL_PORT: ${MAIL_PORT:-587}
+    MAIL_USERNAME: ${MAIL_USERNAME:-}
+    MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+    MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
+    MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-no-reply@indolia.de}
+    MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Indolia Physio}
+  depends_on:
+    db:
+      condition: service_healthy
+  networks:
+    - backend
+
+services:
+  app:
+    <<: *app-common
+    expose:
+      - "80"
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - app_storage:/var/www/html/storage
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1',9000)?0:1);"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  queue:
+    <<: *app-common
+    command: php artisan queue:work --tries=3 --timeout=60 --sleep=3
+    volumes:
+      - app_storage:/var/www/html/storage
+    stop_signal: SIGTERM
+
+  db:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-indolia}
+      MYSQL_USER: ${DB_USERNAME:-indolia}
+      MYSQL_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p\"$$MYSQL_ROOT_PASSWORD\" --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  app_storage:
+    driver: local
+  db_data:
+    driver: local

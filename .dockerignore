@@ -1,0 +1,40 @@
+# VCS + IDE
+.git
+.gitignore
+.gitattributes
+.idea
+.vscode
+.fleet
+
+# Local environment & secrets - never baked into the image
+.env
+.env.backup
+.env.production
+.env.development
+auth.json
+*.key
+*.pem
+
+# Build toolchains (Composer/npm build inside the container only)
+node_modules
+vendor
+public/build
+public/hot
+public/storage
+composer.phar
+
+# Data (DB snapshot is needed for the DB image build, keep database/dumps)
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/app/*
+
+# Docs / archives
+*.md
+indolia.zip
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db

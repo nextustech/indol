@@ -1,0 +1,8 @@
+# Indolia database image.
+# Bundles the schema + data snapshot; the official mysql entrypoint imports it
+# automatically ONLY on the first boot (empty data dir).
+FROM mysql:8.0
+
+COPY database/dumps/indolia_full.sql /docker-entrypoint-initdb.d/01-indolia-full.sql
+
+CMD ["mysqld", "--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--default-authentication-plugin=mysql_native_password"]
