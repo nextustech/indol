@@ -43,8 +43,6 @@ x-app-common: &app-common
   depends_on:
     db:
       condition: service_healthy
-  networks:
-    - backend
 
 services:
   app:
@@ -87,12 +85,6 @@ services:
       timeout: 5s
       retries: 10
       start_period: 40s
-    networks:
-      - backend
-
-networks:
-  backend:
-    driver: bridge
 
 volumes:
   app_storage:
