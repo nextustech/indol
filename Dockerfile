@@ -5,23 +5,6 @@
 # ============================================================================
 
 ######################
-# Build dependencies #
-######################
-FROM composer:2 AS vendor
-
-WORKDIR /app
-COPY composer.json composer.lock ./
-
-# Skip scripts: package:discover / vendor:publish need the app present,
-# they are run at container start instead.
-RUN composer install \
-        --no-dev \
-        --no-scripts \
-        --no-interaction \
-        --no-progress \
-        --optimize-autoloader
-
-######################
 # Build frontend     #
 ######################
 FROM node:18-alpine AS frontend
@@ -82,13 +65,25 @@ RUN rm -f /etc/nginx/sites-enabled/default \
 
 # Application code (excludes .env, vendor, storage caches per .dockerignore)
 COPY --chown=www-data:www-data . /var/www/html
-COPY --chown=www-data:www-data --from=vendor /app/vendor /var/www/html/vendor
 COPY --chown=www-data:www-data --from=frontend /app/public/build /var/www/html/public/build
+
+# Install PHP dependencies with the exact runtime PHP (8.2) instead of the
+# composer image (whose PHP tracks latest). Copy the self-contained composer
+# phar from the official composer image.
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+ENV COMPOSER_ALLOW_SUPERUSER=1 COMPOSER_HOME=/tmp
+RUN composer install \
+        --no-dev \
+        --no-scripts \
+        --no-interaction \
+        --no-progress \
+        --optimize-autoloader \
+    && rm -f /usr/local/bin/composer
 
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint
 RUN chmod +x /usr/local/bin/entrypoint \
     && mkdir -p /var/run/php /var/log/nginx \
-    && chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+    && chown -R www-data:www-data /var/www/html
 
 EXPOSE 80
 
