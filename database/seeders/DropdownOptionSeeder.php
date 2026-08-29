@@ -15,6 +15,8 @@ class DropdownOptionSeeder extends Seeder
             'complaint' => ['Pain', 'Swelling', 'Stiffness', 'Numbness', 'Tingling', 'Weakness', 'Deformity', 'Loss of function'],
             'special_test' => ['SLR', 'Faber', 'Compression', 'Distraction', 'McMurray', 'Anterior Drawer Test', 'Posterior Drawer Test', 'Lachman Test', 'Patellar Apprehension Test', 'Drop Arm Test', 'Empty Can Test', 'Hawkins-Kennedy Test'],
             'clinical_impression' => ['Lumbar Disc Bulge', 'Lumbar Canal Stenosis', 'Spondylolisthesis', 'Sciatica', 'Rotator Cuff Injury', 'Frozen Shoulder', 'Osteoarthritis', 'Cervical Spondylosis', 'Plantar Fasciitis', 'Meniscal Injury'],
+            'precaution' => ['No forward bending', 'No lifting > 5 kg', 'Avoid prolonged sitting', 'Avoid twisting movements', 'No running/jumping', 'Avoid cross-legged sitting', 'No weight bearing on affected side', 'Avoid cold exposure'],
+            'advice' => ['Use lumbar belt', 'Use western toilet', 'Change pillow position', 'Take hot water fermentation', 'Maintain posture', 'Avoid prolonged static posture', 'Use ergonomic chair', 'Sleep on firm surface', 'Apply ice after exercise', 'Stay hydrated'],
         ];
 
         foreach ($groups as $type => $names) {

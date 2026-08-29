@@ -16,7 +16,7 @@ class DropdownOptionController extends Controller
     public function storeQuick(Request $request)
     {
         $request->validate([
-            'type' => 'required|string|max:50|in:investigation_type,exercise_name,exercise_category,special_test,clinical_impression,complaint',
+            'type' => 'required|string|max:50|in:investigation_type,exercise_name,exercise_category,special_test,clinical_impression,complaint,precaution,advice',
             'name' => 'required|string|max:255',
         ]);
 

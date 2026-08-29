@@ -238,6 +238,8 @@ class AssessmentController extends Controller
             'specialTests' => DropdownOption::where('type', 'special_test')->orderBy('name')->pluck('name'),
             'clinicalImpressions' => DropdownOption::where('type', 'clinical_impression')->orderBy('name')->pluck('name'),
             'complaints' => DropdownOption::where('type', 'complaint')->orderBy('name')->pluck('name'),
+            'precautions' => DropdownOption::where('type', 'precaution')->orderBy('name')->pluck('name'),
+            'advices' => DropdownOption::where('type', 'advice')->orderBy('name')->pluck('name'),
         ];
     }
 

@@ -227,11 +227,23 @@
                                         <div class="row mt-2">
                                             <div class="col-md-6">
                                                 <label>Precautions / Avoid</label>
-                                                <textarea name="precautions" class="form-control" rows="3" placeholder="Forward bending, weight lifting, long sitting, etc.">{{ old('precautions') }}</textarea>
+                                                <select class="form-control precaution-tags mb-2" data-tags-type="precaution" data-placeholder="Add precautions...">
+                                                    <option value=""></option>
+                                                    @foreach($precautions as $p)
+                                                        <option value="{{ $p }}">{{ $p }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <textarea name="precautions" id="precautionTextarea" class="form-control" rows="3" placeholder="Forward bending, weight lifting, long sitting, etc.">{{ old('precautions') }}</textarea>
                                             </div>
                                             <div class="col-md-6">
                                                 <label>Advice</label>
-                                                <textarea name="advice" class="form-control" rows="3" placeholder="Posture change, LS belt, western toilet, sleep position, etc.">{{ old('advice') }}</textarea>
+                                                <select class="form-control advice-tags mb-2" data-tags-type="advice" data-placeholder="Add advice...">
+                                                    <option value=""></option>
+                                                    @foreach($advices as $a)
+                                                        <option value="{{ $a }}">{{ $a }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <textarea name="advice" id="adviceTextarea" class="form-control" rows="3" placeholder="Posture change, LS belt, western toilet, sleep position, etc.">{{ old('advice') }}</textarea>
                                             </div>
                                         </div>
                                         <div class="row mt-2">
@@ -396,6 +408,8 @@ $(function() {
     initTagsMergedTextarea($('.complaint-tags'), $('#ccTextarea'), 'complaint');
     initTagsMergedTextarea($('.special-tags'), $('#specialTestsTextarea'), 'special_test');
     initTagsMergedTextarea($('.clinical-tags'), $('#clinicalImpressTextarea'), 'clinical_impression');
+    initTagsMergedTextarea($('.precaution-tags'), $('#precautionTextarea'), 'precaution');
+    initTagsMergedTextarea($('.advice-tags'), $('#adviceTextarea'), 'advice');
 
     $('#patient_id').select2({
         ajax: {
