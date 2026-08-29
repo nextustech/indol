@@ -148,7 +148,7 @@
                                                 <label>Special Tests</label>
                                                 <div id="special-tests-container">
                                                     <div class="special-test-row row mb-1">
-                                                        <div class="col-md-11">
+                                                        <div class="col-md-6">
                                                             <select name="specialTests[0][test]" class="form-control st-type-select" data-placeholder="Special test...">
                                                                 <option value=""></option>
                                                                 @foreach($specialTests as $st)
@@ -156,7 +156,14 @@
                                                                 @endforeach
                                                             </select>
                                                         </div>
-                                                        <div class="col-md-1">
+                                                        <div class="col-md-4">
+                                                            <select name="specialTests[0][result]" class="form-control st-result-select">
+                                                                <option value="">Result</option>
+                                                                <option value="+ve">+ve</option>
+                                                                <option value="-ve">-ve</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-2">
                                                             <button type="button" class="btn btn-danger btn-sm remove-special-test"><i class="fa fa-times"></i></button>
                                                         </div>
                                                     </div>
@@ -474,9 +481,11 @@ $(function() {
     var stIndex = 1;
     $('#add-special-test').click(function() {
         var html = '<div class="special-test-row row mb-1">' +
-            '<div class="col-md-11"><select name="specialTests[' + stIndex + '][test]" class="form-control st-type-select" data-placeholder="Special test...">' +
+            '<div class="col-md-6"><select name="specialTests[' + stIndex + '][test]" class="form-control st-type-select" data-placeholder="Special test...">' +
             '<option value=""></option>@foreach($specialTests as $st)<option value="{{ $st }}">{{ $st }}</option>@endforeach</select></div>' +
-            '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm remove-special-test"><i class="fa fa-times"></i></button></div>' +
+            '<div class="col-md-4"><select name="specialTests[' + stIndex + '][result]" class="form-control st-result-select">' +
+            '<option value="">Result</option><option value="+ve">+ve</option><option value="-ve">-ve</option></select></div>' +
+            '<div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-special-test"><i class="fa fa-times"></i></button></div>' +
             '</div>';
         $('#special-tests-container').append(html);
         initAddIfNotFound($('#special-tests-container .special-test-row:last .st-type-select'), 'special_test');

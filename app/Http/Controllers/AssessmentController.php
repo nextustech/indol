@@ -112,8 +112,9 @@ class AssessmentController extends Controller
 
         if ($request->has('specialTests')) {
             $data['special_tests'] = collect($request->specialTests)
-                ->pluck('test')
-                ->filter()
+                ->filter(fn($st) => !empty($st['test']))
+                ->map(fn($st) => $st['test'] . ' | ' . ($st['result'] ?? ''))
+                ->values()
                 ->implode("\n");
         }
 
@@ -194,8 +195,9 @@ class AssessmentController extends Controller
 
         if ($request->has('specialTests')) {
             $data['special_tests'] = collect($request->specialTests)
-                ->pluck('test')
-                ->filter()
+                ->filter(fn($st) => !empty($st['test']))
+                ->map(fn($st) => $st['test'] . ' | ' . ($st['result'] ?? ''))
+                ->values()
                 ->implode("\n");
         }
 
