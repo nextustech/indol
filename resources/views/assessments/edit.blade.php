@@ -385,13 +385,46 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <label>Advice</label>
-                                                <select class="form-control advice-tags mb-2" data-tags-type="advice" data-placeholder="Add advice...">
-                                                    <option value=""></option>
-                                                    @foreach($advices as $a)
-                                                        <option value="{{ $a }}">{{ $a }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <textarea name="advice" id="adviceTextarea" class="form-control" rows="3" placeholder="Posture change, LS belt, western toilet, sleep position, etc.">{{ $plan->advice ?? '' }}</textarea>
+                                                <div id="advices-container">
+                                                    @php
+                                                        $aLines = ($plan->advice ?? '')
+                                                            ? array_filter(array_map('trim', explode("\n", $plan->advice)))
+                                                            : [];
+                                                    @endphp
+                                                    @forelse($aLines as $i => $a)
+                                                    <div class="advice-row row mb-1">
+                                                        <div class="col-md-11">
+                                                            <select name="adviceList[{{ $i }}][advice]" class="form-control advice-type-select" data-placeholder="Advice...">
+                                                                <option value=""></option>
+                                                                @foreach($advices as $opt)
+                                                                    <option value="{{ $opt }}" {{ $a == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                                                @endforeach
+                                                                @if($a && !$advices->contains($a))
+                                                                    <option value="{{ $a }}" selected>{{ $a }}</option>
+                                                                @endif
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-1">
+                                                            <button type="button" class="btn btn-danger btn-sm remove-advice"><i class="fa fa-times"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    @empty
+                                                    <div class="advice-row row mb-1">
+                                                        <div class="col-md-11">
+                                                            <select name="adviceList[0][advice]" class="form-control advice-type-select" data-placeholder="Advice...">
+                                                                <option value=""></option>
+                                                                @foreach($advices as $a)
+                                                                    <option value="{{ $a }}">{{ $a }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-1">
+                                                            <button type="button" class="btn btn-danger btn-sm remove-advice"><i class="fa fa-times"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    @endforelse
+                                                </div>
+                                                <button type="button" id="add-advice" class="btn btn-sm btn-success mt-1"><i class="fa fa-plus"></i> Add</button>
                                             </div>
                                         </div>
                                         <div class="row mt-2">
@@ -668,6 +701,22 @@ $(function() {
 
     $(document).on('click', '.remove-precaution', function() {
         $(this).closest('.precaution-row').remove();
+    });
+
+    var adviceIndex = {{ max(count($aLines ?? []), 1) }};
+    $('#add-advice').click(function() {
+        var html = '<div class="advice-row row mb-1">' +
+            '<div class="col-md-11"><select name="adviceList[' + adviceIndex + '][advice]" class="form-control advice-type-select" data-placeholder="Advice...">' +
+            '<option value=""></option>@foreach($advices as $a)<option value="{{ $a }}">{{ $a }}</option>@endforeach</select></div>' +
+            '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm remove-advice"><i class="fa fa-times"></i></button></div>' +
+            '</div>';
+        $('#advices-container').append(html);
+        initAddIfNotFound($('#advices-container .advice-row:last .advice-type-select'), 'advice');
+        adviceIndex++;
+    });
+
+    $(document).on('click', '.remove-advice', function() {
+        $(this).closest('.advice-row').remove();
     });
 
     var invIndex = {{ max($assessment->investigations->count(), 1) }};

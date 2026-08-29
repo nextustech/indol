@@ -124,13 +124,6 @@ class AssessmentController extends Controller
                 ->implode("\n");
         }
 
-        if ($request->has('precautionList')) {
-            $data['precautions'] = collect($request->precautionList)
-                ->pluck('precaution')
-                ->filter()
-                ->implode("\n");
-        }
-
         $assessment = Assessment::create($data);
 
         if ($assessment) {
@@ -209,13 +202,6 @@ class AssessmentController extends Controller
         if ($request->has('clinicalImpressions')) {
             $data['clinical_impression'] = collect($request->clinicalImpressions)
                 ->pluck('impression')
-                ->filter()
-                ->implode("\n");
-        }
-
-        if ($request->has('precautionList')) {
-            $data['precautions'] = collect($request->precautionList)
-                ->pluck('precaution')
                 ->filter()
                 ->implode("\n");
         }
@@ -322,10 +308,18 @@ class AssessmentController extends Controller
 
     private function saveTreatmentPlan(Request $request, Assessment $assessment)
     {
+        $precautions = $request->has('precautionList')
+            ? collect($request->precautionList)->pluck('precaution')->filter()->implode("\n")
+            : $request->precautions;
+
+        $advice = $request->has('adviceList')
+            ? collect($request->adviceList)->pluck('advice')->filter()->implode("\n")
+            : $request->advice;
+
         $hasPlanData = $request->filled('short_term_goals')
             || $request->filled('long_term_goals')
-            || $request->filled('precautions')
-            || $request->filled('advice')
+            || !empty($precautions)
+            || !empty($advice)
             || $request->filled('follow_up_instructions')
             || ($request->has('exercises') && collect($request->exercises)->pluck('exercise_name')->filter()->isNotEmpty());
 
@@ -339,8 +333,8 @@ class AssessmentController extends Controller
             $plan->update([
                 'short_term_goals' => $request->short_term_goals,
                 'long_term_goals' => $request->long_term_goals,
-                'precautions' => $request->precautions,
-                'advice' => $request->advice,
+                'precautions' => $precautions,
+                'advice' => $advice,
                 'follow_up_instructions' => $request->follow_up_instructions,
             ]);
         } else {
@@ -349,8 +343,8 @@ class AssessmentController extends Controller
                 'patient_id' => $assessment->patient_id,
                 'short_term_goals' => $request->short_term_goals,
                 'long_term_goals' => $request->long_term_goals,
-                'precautions' => $request->precautions,
-                'advice' => $request->advice,
+                'precautions' => $precautions,
+                'advice' => $advice,
                 'follow_up_instructions' => $request->follow_up_instructions,
                 'status' => 'active',
                 'created_by' => Auth::id(),
