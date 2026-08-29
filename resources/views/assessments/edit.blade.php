@@ -74,14 +74,46 @@
                                 </div>
                                 <div id="ccSection" class="collapse show">
                                     <div class="card-body">
-                                        <label>Add from list or type new</label>
-                                        <select class="form-control complaint-tags mb-2" data-tags-type="complaint" data-placeholder="Add common complaints...">
-                                            <option value=""></option>
-                                            @foreach($complaints as $c)
-                                                <option value="{{ $c }}">{{ $c }}</option>
-                                            @endforeach
-                                        </select>
-                                        <textarea name="chief_complaints" id="ccTextarea" class="form-control" rows="4">{{ $assessment->chief_complaints }}</textarea>
+                                        <div id="complaints-container">
+                                            @php
+                                                $ccLines = $assessment->chief_complaints
+                                                    ? array_filter(array_map('trim', explode("\n", $assessment->chief_complaints)))
+                                                    : [];
+                                            @endphp
+                                            @forelse($ccLines as $i => $cc)
+                                            <div class="complaint-row row">
+                                                <div class="col-md-11">
+                                                    <select name="complaints[{{ $i }}][complaint]" class="form-control cc-type-select" data-placeholder="Chief complaint...">
+                                                        <option value=""></option>
+                                                        @foreach($complaints as $c)
+                                                            <option value="{{ $c }}" {{ $cc == $c ? 'selected' : '' }}>{{ $c }}</option>
+                                                        @endforeach
+                                                        @if($cc && !$complaints->contains($cc))
+                                                            <option value="{{ $cc }}" selected>{{ $cc }}</option>
+                                                        @endif
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-1">
+                                                    <button type="button" class="btn btn-danger btn-sm remove-complaint"><i class="fa fa-times"></i></button>
+                                                </div>
+                                            </div>
+                                            @empty
+                                            <div class="complaint-row row">
+                                                <div class="col-md-11">
+                                                    <select name="complaints[0][complaint]" class="form-control cc-type-select" data-placeholder="Chief complaint...">
+                                                        <option value=""></option>
+                                                        @foreach($complaints as $c)
+                                                            <option value="{{ $c }}">{{ $c }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-1">
+                                                    <button type="button" class="btn btn-danger btn-sm remove-complaint"><i class="fa fa-times"></i></button>
+                                                </div>
+                                            </div>
+                                            @endforelse
+                                        </div>
+                                        <button type="button" id="add-complaint" class="btn btn-sm btn-success mt-2"><i class="fa fa-plus"></i> Add Complaint</button>
                                     </div>
                                 </div>
                             </div>
@@ -471,11 +503,28 @@ $(function() {
     initAddIfNotFound($('.ex-name-select'), 'exercise_name');
     initAddIfNotFound($('.ex-category-select'), 'exercise_category');
 
-    initTagsMergedTextarea($('.complaint-tags'), $('#ccTextarea'), 'complaint');
     initTagsMergedTextarea($('.special-tags'), $('#specialTestsTextarea'), 'special_test');
     initTagsMergedTextarea($('.clinical-tags'), $('#clinicalImpressTextarea'), 'clinical_impression');
     initTagsMergedTextarea($('.precaution-tags'), $('#precautionTextarea'), 'precaution');
     initTagsMergedTextarea($('.advice-tags'), $('#adviceTextarea'), 'advice');
+
+    initAddIfNotFound($('.cc-type-select'), 'complaint');
+
+    var ccIndex = {{ max(count($ccLines ?? []), 1) }};
+    $('#add-complaint').click(function() {
+        var html = '<div class="complaint-row row">' +
+            '<div class="col-md-11"><select name="complaints[' + ccIndex + '][complaint]" class="form-control cc-type-select" data-placeholder="Chief complaint...">' +
+            '<option value=""></option>@foreach($complaints as $c)<option value="{{ $c }}">{{ $c }}</option>@endforeach</select></div>' +
+            '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm remove-complaint"><i class="fa fa-times"></i></button></div>' +
+            '</div>';
+        $('#complaints-container').append(html);
+        initAddIfNotFound($('#complaints-container .complaint-row:last .cc-type-select'), 'complaint');
+        ccIndex++;
+    });
+
+    $(document).on('click', '.remove-complaint', function() {
+        $(this).closest('.complaint-row').remove();
+    });
 
     var invIndex = {{ max($assessment->investigations->count(), 1) }};
     $('#add-investigation').click(function() {

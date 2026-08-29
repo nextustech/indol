@@ -103,6 +103,13 @@ class AssessmentController extends Controller
         $dt = date('Y-m-d', strtotime($data['assessment_date']));
         $data['assessment_date'] = Carbon::createFromFormat('Y-m-d H', $dt . ' 00');
 
+        if ($request->has('complaints')) {
+            $data['chief_complaints'] = collect($request->complaints)
+                ->pluck('complaint')
+                ->filter()
+                ->implode("\n");
+        }
+
         $assessment = Assessment::create($data);
 
         if ($assessment) {
@@ -163,6 +170,13 @@ class AssessmentController extends Controller
         $data = $request->all();
         $dt = date('Y-m-d', strtotime($data['assessment_date']));
         $data['assessment_date'] = Carbon::createFromFormat('Y-m-d H', $dt . ' 00');
+
+        if ($request->has('complaints')) {
+            $data['chief_complaints'] = collect($request->complaints)
+                ->pluck('complaint')
+                ->filter()
+                ->implode("\n");
+        }
 
         if ($assessment->update($data)) {
             $this->saveInvestigations($request, $assessment);
