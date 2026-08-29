@@ -117,6 +117,13 @@ class AssessmentController extends Controller
                 ->implode("\n");
         }
 
+        if ($request->has('clinicalImpressions')) {
+            $data['clinical_impression'] = collect($request->clinicalImpressions)
+                ->pluck('impression')
+                ->filter()
+                ->implode("\n");
+        }
+
         $assessment = Assessment::create($data);
 
         if ($assessment) {
@@ -188,6 +195,13 @@ class AssessmentController extends Controller
         if ($request->has('specialTests')) {
             $data['special_tests'] = collect($request->specialTests)
                 ->pluck('test')
+                ->filter()
+                ->implode("\n");
+        }
+
+        if ($request->has('clinicalImpressions')) {
+            $data['clinical_impression'] = collect($request->clinicalImpressions)
+                ->pluck('impression')
                 ->filter()
                 ->implode("\n");
         }

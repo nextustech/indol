@@ -211,13 +211,46 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <label>Clinical Impression</label>
-                                                <select class="form-control clinical-tags mb-2" data-tags-type="clinical_impression" data-placeholder="Add from list or type new...">
-                                                    <option value=""></option>
-                                                    @foreach($clinicalImpressions as $ci)
-                                                        <option value="{{ $ci }}">{{ $ci }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <textarea name="clinical_impression" id="clinicalImpressTextarea" class="form-control" rows="3">{{ $assessment->clinical_impression }}</textarea>
+                                                <div id="clinical-impressions-container">
+                                                    @php
+                                                        $ciLines = $assessment->clinical_impression
+                                                            ? array_filter(array_map('trim', explode("\n", $assessment->clinical_impression)))
+                                                            : [];
+                                                    @endphp
+                                                    @forelse($ciLines as $i => $ci)
+                                                    <div class="clinical-impression-row row mb-1">
+                                                        <div class="col-md-11">
+                                                            <select name="clinicalImpressions[{{ $i }}][impression]" class="form-control ci-type-select" data-placeholder="Clinical impression...">
+                                                                <option value=""></option>
+                                                                @foreach($clinicalImpressions as $opt)
+                                                                    <option value="{{ $opt }}" {{ $ci == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                                                @endforeach
+                                                                @if($ci && !$clinicalImpressions->contains($ci))
+                                                                    <option value="{{ $ci }}" selected>{{ $ci }}</option>
+                                                                @endif
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-1">
+                                                            <button type="button" class="btn btn-danger btn-sm remove-clinical-impression"><i class="fa fa-times"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    @empty
+                                                    <div class="clinical-impression-row row mb-1">
+                                                        <div class="col-md-11">
+                                                            <select name="clinicalImpressions[0][impression]" class="form-control ci-type-select" data-placeholder="Clinical impression...">
+                                                                <option value=""></option>
+                                                                @foreach($clinicalImpressions as $ci)
+                                                                    <option value="{{ $ci }}">{{ $ci }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-1">
+                                                            <button type="button" class="btn btn-danger btn-sm remove-clinical-impression"><i class="fa fa-times"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    @endforelse
+                                                </div>
+                                                <button type="button" id="add-clinical-impression" class="btn btn-sm btn-success mt-1"><i class="fa fa-plus"></i> Add</button>
                                             </div>
                                         </div>
                                     </div>
@@ -536,12 +569,12 @@ $(function() {
     initAddIfNotFound($('.ex-name-select'), 'exercise_name');
     initAddIfNotFound($('.ex-category-select'), 'exercise_category');
 
-    initTagsMergedTextarea($('.clinical-tags'), $('#clinicalImpressTextarea'), 'clinical_impression');
     initTagsMergedTextarea($('.precaution-tags'), $('#precautionTextarea'), 'precaution');
     initTagsMergedTextarea($('.advice-tags'), $('#adviceTextarea'), 'advice');
 
     initAddIfNotFound($('.cc-type-select'), 'complaint');
     initAddIfNotFound($('.st-type-select'), 'special_test');
+    initAddIfNotFound($('.ci-type-select'), 'clinical_impression');
 
     var ccIndex = {{ max(count($ccLines ?? []), 1) }};
     $('#add-complaint').click(function() {
@@ -573,6 +606,22 @@ $(function() {
 
     $(document).on('click', '.remove-special-test', function() {
         $(this).closest('.special-test-row').remove();
+    });
+
+    var ciIndex = {{ max(count($ciLines ?? []), 1) }};
+    $('#add-clinical-impression').click(function() {
+        var html = '<div class="clinical-impression-row row mb-1">' +
+            '<div class="col-md-11"><select name="clinicalImpressions[' + ciIndex + '][impression]" class="form-control ci-type-select" data-placeholder="Clinical impression...">' +
+            '<option value=""></option>@foreach($clinicalImpressions as $ci)<option value="{{ $ci }}">{{ $ci }}</option>@endforeach</select></div>' +
+            '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm remove-clinical-impression"><i class="fa fa-times"></i></button></div>' +
+            '</div>';
+        $('#clinical-impressions-container').append(html);
+        initAddIfNotFound($('#clinical-impressions-container .clinical-impression-row:last .ci-type-select'), 'clinical_impression');
+        ciIndex++;
+    });
+
+    $(document).on('click', '.remove-clinical-impression', function() {
+        $(this).closest('.clinical-impression-row').remove();
     });
 
     var invIndex = {{ max($assessment->investigations->count(), 1) }};
