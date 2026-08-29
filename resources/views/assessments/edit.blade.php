@@ -158,13 +158,46 @@
                                         <div class="row mt-2">
                                             <div class="col-md-6">
                                                 <label>Special Tests</label>
-                                                <select class="form-control special-tags mb-2" data-tags-type="special_test" data-placeholder="Add from list or type new...">
-                                                    <option value=""></option>
-                                                    @foreach($specialTests as $st)
-                                                        <option value="{{ $st }}">{{ $st }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <textarea name="special_tests" id="specialTestsTextarea" class="form-control" rows="3">{{ $assessment->special_tests }}</textarea>
+                                                <div id="special-tests-container">
+                                                    @php
+                                                        $stLines = $assessment->special_tests
+                                                            ? array_filter(array_map('trim', explode("\n", $assessment->special_tests)))
+                                                            : [];
+                                                    @endphp
+                                                    @forelse($stLines as $i => $st)
+                                                    <div class="special-test-row row mb-1">
+                                                        <div class="col-md-11">
+                                                            <select name="specialTests[{{ $i }}][test]" class="form-control st-type-select" data-placeholder="Special test...">
+                                                                <option value=""></option>
+                                                                @foreach($specialTests as $opt)
+                                                                    <option value="{{ $opt }}" {{ $st == $opt ? 'selected' : '' }}>{{ $opt }}</option>
+                                                                @endforeach
+                                                                @if($st && !$specialTests->contains($st))
+                                                                    <option value="{{ $st }}" selected>{{ $st }}</option>
+                                                                @endif
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-1">
+                                                            <button type="button" class="btn btn-danger btn-sm remove-special-test"><i class="fa fa-times"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    @empty
+                                                    <div class="special-test-row row mb-1">
+                                                        <div class="col-md-11">
+                                                            <select name="specialTests[0][test]" class="form-control st-type-select" data-placeholder="Special test...">
+                                                                <option value=""></option>
+                                                                @foreach($specialTests as $st)
+                                                                    <option value="{{ $st }}">{{ $st }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-1">
+                                                            <button type="button" class="btn btn-danger btn-sm remove-special-test"><i class="fa fa-times"></i></button>
+                                                        </div>
+                                                    </div>
+                                                    @endforelse
+                                                </div>
+                                                <button type="button" id="add-special-test" class="btn btn-sm btn-success mt-1"><i class="fa fa-plus"></i> Add</button>
                                             </div>
                                             <div class="col-md-6">
                                                 <label>Neurological</label>
@@ -503,12 +536,12 @@ $(function() {
     initAddIfNotFound($('.ex-name-select'), 'exercise_name');
     initAddIfNotFound($('.ex-category-select'), 'exercise_category');
 
-    initTagsMergedTextarea($('.special-tags'), $('#specialTestsTextarea'), 'special_test');
     initTagsMergedTextarea($('.clinical-tags'), $('#clinicalImpressTextarea'), 'clinical_impression');
     initTagsMergedTextarea($('.precaution-tags'), $('#precautionTextarea'), 'precaution');
     initTagsMergedTextarea($('.advice-tags'), $('#adviceTextarea'), 'advice');
 
     initAddIfNotFound($('.cc-type-select'), 'complaint');
+    initAddIfNotFound($('.st-type-select'), 'special_test');
 
     var ccIndex = {{ max(count($ccLines ?? []), 1) }};
     $('#add-complaint').click(function() {
@@ -524,6 +557,22 @@ $(function() {
 
     $(document).on('click', '.remove-complaint', function() {
         $(this).closest('.complaint-row').remove();
+    });
+
+    var stIndex = {{ max(count($stLines ?? []), 1) }};
+    $('#add-special-test').click(function() {
+        var html = '<div class="special-test-row row mb-1">' +
+            '<div class="col-md-11"><select name="specialTests[' + stIndex + '][test]" class="form-control st-type-select" data-placeholder="Special test...">' +
+            '<option value=""></option>@foreach($specialTests as $st)<option value="{{ $st }}">{{ $st }}</option>@endforeach</select></div>' +
+            '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm remove-special-test"><i class="fa fa-times"></i></button></div>' +
+            '</div>';
+        $('#special-tests-container').append(html);
+        initAddIfNotFound($('#special-tests-container .special-test-row:last .st-type-select'), 'special_test');
+        stIndex++;
+    });
+
+    $(document).on('click', '.remove-special-test', function() {
+        $(this).closest('.special-test-row').remove();
     });
 
     var invIndex = {{ max($assessment->investigations->count(), 1) }};

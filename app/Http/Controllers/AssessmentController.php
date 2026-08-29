@@ -110,6 +110,13 @@ class AssessmentController extends Controller
                 ->implode("\n");
         }
 
+        if ($request->has('specialTests')) {
+            $data['special_tests'] = collect($request->specialTests)
+                ->pluck('test')
+                ->filter()
+                ->implode("\n");
+        }
+
         $assessment = Assessment::create($data);
 
         if ($assessment) {
@@ -174,6 +181,13 @@ class AssessmentController extends Controller
         if ($request->has('complaints')) {
             $data['chief_complaints'] = collect($request->complaints)
                 ->pluck('complaint')
+                ->filter()
+                ->implode("\n");
+        }
+
+        if ($request->has('specialTests')) {
+            $data['special_tests'] = collect($request->specialTests)
+                ->pluck('test')
                 ->filter()
                 ->implode("\n");
         }
