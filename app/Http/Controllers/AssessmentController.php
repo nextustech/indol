@@ -124,6 +124,13 @@ class AssessmentController extends Controller
                 ->implode("\n");
         }
 
+        if ($request->has('precautionList')) {
+            $data['precautions'] = collect($request->precautionList)
+                ->pluck('precaution')
+                ->filter()
+                ->implode("\n");
+        }
+
         $assessment = Assessment::create($data);
 
         if ($assessment) {
@@ -202,6 +209,13 @@ class AssessmentController extends Controller
         if ($request->has('clinicalImpressions')) {
             $data['clinical_impression'] = collect($request->clinicalImpressions)
                 ->pluck('impression')
+                ->filter()
+                ->implode("\n");
+        }
+
+        if ($request->has('precautionList')) {
+            $data['precautions'] = collect($request->precautionList)
+                ->pluck('precaution')
                 ->filter()
                 ->implode("\n");
         }

@@ -253,13 +253,22 @@
                                         <div class="row mt-2">
                                             <div class="col-md-6">
                                                 <label>Precautions / Avoid</label>
-                                                <select class="form-control precaution-tags mb-2" data-tags-type="precaution" data-placeholder="Add precautions...">
-                                                    <option value=""></option>
-                                                    @foreach($precautions as $p)
-                                                        <option value="{{ $p }}">{{ $p }}</option>
-                                                    @endforeach
-                                                </select>
-                                                <textarea name="precautions" id="precautionTextarea" class="form-control" rows="3" placeholder="Forward bending, weight lifting, long sitting, etc.">{{ old('precautions') }}</textarea>
+                                                <div id="precautions-container">
+                                                    <div class="precaution-row row mb-1">
+                                                        <div class="col-md-11">
+                                                            <select name="precautionList[0][precaution]" class="form-control precaution-type-select" data-placeholder="Precaution...">
+                                                                <option value=""></option>
+                                                                @foreach($precautions as $p)
+                                                                    <option value="{{ $p }}">{{ $p }}</option>
+                                                                @endforeach
+                                                            </select>
+                                                        </div>
+                                                        <div class="col-md-1">
+                                                            <button type="button" class="btn btn-danger btn-sm remove-precaution"><i class="fa fa-times"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <button type="button" id="add-precaution" class="btn btn-sm btn-success mt-1"><i class="fa fa-plus"></i> Add</button>
                                             </div>
                                             <div class="col-md-6">
                                                 <label>Advice</label>
@@ -431,12 +440,11 @@ $(function() {
     initAddIfNotFound($('.ex-name-select'), 'exercise_name');
     initAddIfNotFound($('.ex-category-select'), 'exercise_category');
 
-    initTagsMergedTextarea($('.precaution-tags'), $('#precautionTextarea'), 'precaution');
-    initTagsMergedTextarea($('.advice-tags'), $('#adviceTextarea'), 'advice');
-
     initAddIfNotFound($('.cc-type-select'), 'complaint');
     initAddIfNotFound($('.st-type-select'), 'special_test');
     initAddIfNotFound($('.ci-type-select'), 'clinical_impression');
+    initAddIfNotFound($('.precaution-type-select'), 'precaution');
+    initAddIfNotFound($('.advice-type-select'), 'advice');
 
     var ccIndex = 1;
     $('#add-complaint').click(function() {
@@ -484,6 +492,22 @@ $(function() {
 
     $(document).on('click', '.remove-clinical-impression', function() {
         $(this).closest('.clinical-impression-row').remove();
+    });
+
+    var precautionIndex = 1;
+    $('#add-precaution').click(function() {
+        var html = '<div class="precaution-row row mb-1">' +
+            '<div class="col-md-11"><select name="precautionList[' + precautionIndex + '][precaution]" class="form-control precaution-type-select" data-placeholder="Precaution...">' +
+            '<option value=""></option>@foreach($precautions as $p)<option value="{{ $p }}">{{ $p }}</option>@endforeach</select></div>' +
+            '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm remove-precaution"><i class="fa fa-times"></i></button></div>' +
+            '</div>';
+        $('#precautions-container').append(html);
+        initAddIfNotFound($('#precautions-container .precaution-row:last .precaution-type-select'), 'precaution');
+        precautionIndex++;
+    });
+
+    $(document).on('click', '.remove-precaution', function() {
+        $(this).closest('.precaution-row').remove();
     });
 
     $('#patient_id').select2({
