@@ -7,6 +7,7 @@
     .section-card .card-header .fas { transition: transform .3s; }
     .section-card.collapsed .card-header .fas.fa-chevron-down { transform: rotate(-90deg); }
     .investigation-row, .exercise-row { margin-bottom: .5rem; padding-bottom: .5rem; border-bottom: 1px dashed #dee2e6; }
+    .opt-actions .btn { padding: 2px 6px; font-size: .7rem; }
 </style>
 @endsection
 @section('content')
@@ -86,15 +87,17 @@
                                     <div class="card-body">
                                         <div id="complaints-container">
                                             <div class="complaint-row row">
-                                                <div class="col-md-11">
-                                                    <select name="complaints[0][complaint]" class="form-control cc-type-select" data-placeholder="Chief complaint...">
+                                                <div class="col-md-9">
+                                                    <select name="complaints[0][complaint]" class="form-control cc-type-select" data-placeholder="Chief complaint..." data-type="complaint">
                                                         <option value=""></option>
                                                         @foreach($complaints as $c)
-                                                            <option value="{{ $c }}">{{ $c }}</option>
+                                                            <option value="{{ $c['name'] }}" data-id="{{ $c['id'] }}">{{ $c['name'] }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
-                                                <div class="col-md-1">
+                                                <div class="col-md-3 opt-actions">
+                                                    <button type="button" class="btn btn-outline-info btn-sm edit-option-btn" title="Edit"><i class="fa fa-pencil-alt"></i></button>
+                                                    <button type="button" class="btn btn-outline-danger btn-sm delete-option-btn" title="Delete"><i class="fa fa-trash"></i></button>
                                                     <button type="button" class="btn btn-danger btn-sm remove-complaint"><i class="fa fa-times"></i></button>
                                                 </div>
                                             </div>
@@ -148,22 +151,24 @@
                                                 <label>Special Tests</label>
                                                 <div id="special-tests-container">
                                                     <div class="special-test-row row mb-1">
-                                                        <div class="col-md-6">
-                                                            <select name="specialTests[0][test]" class="form-control st-type-select" data-placeholder="Special test...">
+                                                        <div class="col-md-5">
+                                                            <select name="specialTests[0][test]" class="form-control st-type-select" data-placeholder="Special test..." data-type="special_test">
                                                                 <option value=""></option>
                                                                 @foreach($specialTests as $st)
-                                                                    <option value="{{ $st }}">{{ $st }}</option>
+                                                                    <option value="{{ $st['name'] }}" data-id="{{ $st['id'] }}">{{ $st['name'] }}</option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
-                                                        <div class="col-md-4">
+                                                        <div class="col-md-3">
                                                             <select name="specialTests[0][result]" class="form-control st-result-select">
                                                                 <option value="">Result</option>
                                                                 <option value="+ve">+ve</option>
                                                                 <option value="-ve">-ve</option>
                                                             </select>
                                                         </div>
-                                                        <div class="col-md-2">
+                                                        <div class="col-md-4 opt-actions">
+                                                            <button type="button" class="btn btn-outline-info btn-sm edit-option-btn" title="Edit"><i class="fa fa-pencil-alt"></i></button>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm delete-option-btn" title="Delete"><i class="fa fa-trash"></i></button>
                                                             <button type="button" class="btn btn-danger btn-sm remove-special-test"><i class="fa fa-times"></i></button>
                                                         </div>
                                                     </div>
@@ -184,15 +189,17 @@
                                                 <label>Clinical Impression</label>
                                                 <div id="clinical-impressions-container">
                                                     <div class="clinical-impression-row row mb-1">
-                                                        <div class="col-md-11">
-                                                            <select name="clinicalImpressions[0][impression]" class="form-control ci-type-select" data-placeholder="Clinical impression...">
+                                                        <div class="col-md-9">
+                                                            <select name="clinicalImpressions[0][impression]" class="form-control ci-type-select" data-placeholder="Clinical impression..." data-type="clinical_impression">
                                                                 <option value=""></option>
                                                                 @foreach($clinicalImpressions as $ci)
-                                                                    <option value="{{ $ci }}">{{ $ci }}</option>
+                                                                    <option value="{{ $ci['name'] }}" data-id="{{ $ci['id'] }}">{{ $ci['name'] }}</option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
-                                                        <div class="col-md-1">
+                                                        <div class="col-md-3 opt-actions">
+                                                            <button type="button" class="btn btn-outline-info btn-sm edit-option-btn" title="Edit"><i class="fa fa-pencil-alt"></i></button>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm delete-option-btn" title="Delete"><i class="fa fa-trash"></i></button>
                                                             <button type="button" class="btn btn-danger btn-sm remove-clinical-impression"><i class="fa fa-times"></i></button>
                                                         </div>
                                                     </div>
@@ -214,10 +221,10 @@
                                         <div id="investigations-container">
                                             <div class="investigation-row row">
                                                 <div class="col-md-3">
-                                                    <select name="investigations[0][type]" class="form-control inv-type-select" data-placeholder="Type (MRI, X-ray, etc.)">
+                                                    <select name="investigations[0][type]" class="form-control inv-type-select" data-placeholder="Type (MRI, X-ray, etc.)" data-type="investigation_type">
                                                         <option value=""></option>
                                                         @foreach($investigationTypes as $invType)
-                                                            <option value="{{ $invType }}">{{ $invType }}</option>
+                                                            <option value="{{ $invType['name'] }}" data-id="{{ $invType['id'] }}">{{ $invType['name'] }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
@@ -262,15 +269,17 @@
                                                 <label>Precautions / Avoid</label>
                                                 <div id="precautions-container">
                                                     <div class="precaution-row row mb-1">
-                                                        <div class="col-md-11">
-                                                            <select name="precautionList[0][precaution]" class="form-control precaution-type-select" data-placeholder="Precaution...">
+                                                        <div class="col-md-9">
+                                                            <select name="precautionList[0][precaution]" class="form-control precaution-type-select" data-placeholder="Precaution..." data-type="precaution">
                                                                 <option value=""></option>
                                                                 @foreach($precautions as $p)
-                                                                    <option value="{{ $p }}">{{ $p }}</option>
+                                                                    <option value="{{ $p['name'] }}" data-id="{{ $p['id'] }}">{{ $p['name'] }}</option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
-                                                        <div class="col-md-1">
+                                                        <div class="col-md-3 opt-actions">
+                                                            <button type="button" class="btn btn-outline-info btn-sm edit-option-btn" title="Edit"><i class="fa fa-pencil-alt"></i></button>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm delete-option-btn" title="Delete"><i class="fa fa-trash"></i></button>
                                                             <button type="button" class="btn btn-danger btn-sm remove-precaution"><i class="fa fa-times"></i></button>
                                                         </div>
                                                     </div>
@@ -281,15 +290,17 @@
                                                 <label>Advice</label>
                                                 <div id="advices-container">
                                                     <div class="advice-row row mb-1">
-                                                        <div class="col-md-11">
-                                                            <select name="adviceList[0][advice]" class="form-control advice-type-select" data-placeholder="Advice...">
+                                                        <div class="col-md-9">
+                                                            <select name="adviceList[0][advice]" class="form-control advice-type-select" data-placeholder="Advice..." data-type="advice">
                                                                 <option value=""></option>
                                                                 @foreach($advices as $a)
-                                                                    <option value="{{ $a }}">{{ $a }}</option>
+                                                                    <option value="{{ $a['name'] }}" data-id="{{ $a['id'] }}">{{ $a['name'] }}</option>
                                                                 @endforeach
                                                             </select>
                                                         </div>
-                                                        <div class="col-md-1">
+                                                        <div class="col-md-3 opt-actions">
+                                                            <button type="button" class="btn btn-outline-info btn-sm edit-option-btn" title="Edit"><i class="fa fa-pencil-alt"></i></button>
+                                                            <button type="button" class="btn btn-outline-danger btn-sm delete-option-btn" title="Delete"><i class="fa fa-trash"></i></button>
                                                             <button type="button" class="btn btn-danger btn-sm remove-advice"><i class="fa fa-times"></i></button>
                                                         </div>
                                                     </div>
@@ -390,6 +401,12 @@ $(function() {
                 type: type,
                 name: data.text
             }).done(function(res) {
+                var $opt = $el.find('option[value="' + res.name.replace(/"/g, '\\"') + '"]');
+                if (!$opt.length) {
+                    $opt = $('<option>').val(res.name).text(res.name);
+                    $el.append($opt);
+                }
+                $opt.attr('data-id', res.id);
                 $el.val(res.name).trigger('change');
             }).fail(function() {
                 alert('Could not add value.');
@@ -465,9 +482,12 @@ $(function() {
     var ccIndex = 1;
     $('#add-complaint').click(function() {
         var html = '<div class="complaint-row row">' +
-            '<div class="col-md-11"><select name="complaints[' + ccIndex + '][complaint]" class="form-control cc-type-select" data-placeholder="Chief complaint...">' +
-            '<option value=""></option>@foreach($complaints as $c)<option value="{{ $c }}">{{ $c }}</option>@endforeach</select></div>' +
-            '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm remove-complaint"><i class="fa fa-times"></i></button></div>' +
+            '<div class="col-md-9"><select name="complaints[' + ccIndex + '][complaint]" class="form-control cc-type-select" data-placeholder="Chief complaint..." data-type="complaint">' +
+            '<option value=""></option>@foreach($complaints as $c)<option value="{{ $c['name'] }}" data-id="{{ $c['id'] }}">{{ $c['name'] }}</option>@endforeach</select></div>' +
+            '<div class="col-md-3 opt-actions">' +
+            '<button type="button" class="btn btn-outline-info btn-sm edit-option-btn" title="Edit"><i class="fa fa-pencil-alt"></i></button> ' +
+            '<button type="button" class="btn btn-outline-danger btn-sm delete-option-btn" title="Delete"><i class="fa fa-trash"></i></button> ' +
+            '<button type="button" class="btn btn-danger btn-sm remove-complaint"><i class="fa fa-times"></i></button></div>' +
             '</div>';
         $('#complaints-container').append(html);
         initAddIfNotFound($('#complaints-container .complaint-row:last .cc-type-select'), 'complaint');
@@ -481,11 +501,14 @@ $(function() {
     var stIndex = 1;
     $('#add-special-test').click(function() {
         var html = '<div class="special-test-row row mb-1">' +
-            '<div class="col-md-6"><select name="specialTests[' + stIndex + '][test]" class="form-control st-type-select" data-placeholder="Special test...">' +
-            '<option value=""></option>@foreach($specialTests as $st)<option value="{{ $st }}">{{ $st }}</option>@endforeach</select></div>' +
-            '<div class="col-md-4"><select name="specialTests[' + stIndex + '][result]" class="form-control st-result-select">' +
+            '<div class="col-md-5"><select name="specialTests[' + stIndex + '][test]" class="form-control st-type-select" data-placeholder="Special test..." data-type="special_test">' +
+            '<option value=""></option>@foreach($specialTests as $st)<option value="{{ $st['name'] }}" data-id="{{ $st['id'] }}">{{ $st['name'] }}</option>@endforeach</select></div>' +
+            '<div class="col-md-3"><select name="specialTests[' + stIndex + '][result]" class="form-control st-result-select">' +
             '<option value="">Result</option><option value="+ve">+ve</option><option value="-ve">-ve</option></select></div>' +
-            '<div class="col-md-2"><button type="button" class="btn btn-danger btn-sm remove-special-test"><i class="fa fa-times"></i></button></div>' +
+            '<div class="col-md-4 opt-actions">' +
+            '<button type="button" class="btn btn-outline-info btn-sm edit-option-btn" title="Edit"><i class="fa fa-pencil-alt"></i></button> ' +
+            '<button type="button" class="btn btn-outline-danger btn-sm delete-option-btn" title="Delete"><i class="fa fa-trash"></i></button> ' +
+            '<button type="button" class="btn btn-danger btn-sm remove-special-test"><i class="fa fa-times"></i></button></div>' +
             '</div>';
         $('#special-tests-container').append(html);
         initAddIfNotFound($('#special-tests-container .special-test-row:last .st-type-select'), 'special_test');
@@ -499,9 +522,12 @@ $(function() {
     var ciIndex = 1;
     $('#add-clinical-impression').click(function() {
         var html = '<div class="clinical-impression-row row mb-1">' +
-            '<div class="col-md-11"><select name="clinicalImpressions[' + ciIndex + '][impression]" class="form-control ci-type-select" data-placeholder="Clinical impression...">' +
-            '<option value=""></option>@foreach($clinicalImpressions as $ci)<option value="{{ $ci }}">{{ $ci }}</option>@endforeach</select></div>' +
-            '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm remove-clinical-impression"><i class="fa fa-times"></i></button></div>' +
+            '<div class="col-md-9"><select name="clinicalImpressions[' + ciIndex + '][impression]" class="form-control ci-type-select" data-placeholder="Clinical impression..." data-type="clinical_impression">' +
+            '<option value=""></option>@foreach($clinicalImpressions as $ci)<option value="{{ $ci['name'] }}" data-id="{{ $ci['id'] }}">{{ $ci['name'] }}</option>@endforeach</select></div>' +
+            '<div class="col-md-3 opt-actions">' +
+            '<button type="button" class="btn btn-outline-info btn-sm edit-option-btn" title="Edit"><i class="fa fa-pencil-alt"></i></button> ' +
+            '<button type="button" class="btn btn-outline-danger btn-sm delete-option-btn" title="Delete"><i class="fa fa-trash"></i></button> ' +
+            '<button type="button" class="btn btn-danger btn-sm remove-clinical-impression"><i class="fa fa-times"></i></button></div>' +
             '</div>';
         $('#clinical-impressions-container').append(html);
         initAddIfNotFound($('#clinical-impressions-container .clinical-impression-row:last .ci-type-select'), 'clinical_impression');
@@ -515,9 +541,12 @@ $(function() {
     var precautionIndex = 1;
     $('#add-precaution').click(function() {
         var html = '<div class="precaution-row row mb-1">' +
-            '<div class="col-md-11"><select name="precautionList[' + precautionIndex + '][precaution]" class="form-control precaution-type-select" data-placeholder="Precaution...">' +
-            '<option value=""></option>@foreach($precautions as $p)<option value="{{ $p }}">{{ $p }}</option>@endforeach</select></div>' +
-            '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm remove-precaution"><i class="fa fa-times"></i></button></div>' +
+            '<div class="col-md-9"><select name="precautionList[' + precautionIndex + '][precaution]" class="form-control precaution-type-select" data-placeholder="Precaution..." data-type="precaution">' +
+            '<option value=""></option>@foreach($precautions as $p)<option value="{{ $p['name'] }}" data-id="{{ $p['id'] }}">{{ $p['name'] }}</option>@endforeach</select></div>' +
+            '<div class="col-md-3 opt-actions">' +
+            '<button type="button" class="btn btn-outline-info btn-sm edit-option-btn" title="Edit"><i class="fa fa-pencil-alt"></i></button> ' +
+            '<button type="button" class="btn btn-outline-danger btn-sm delete-option-btn" title="Delete"><i class="fa fa-trash"></i></button> ' +
+            '<button type="button" class="btn btn-danger btn-sm remove-precaution"><i class="fa fa-times"></i></button></div>' +
             '</div>';
         $('#precautions-container').append(html);
         initAddIfNotFound($('#precautions-container .precaution-row:last .precaution-type-select'), 'precaution');
@@ -531,9 +560,12 @@ $(function() {
     var adviceIndex = 1;
     $('#add-advice').click(function() {
         var html = '<div class="advice-row row mb-1">' +
-            '<div class="col-md-11"><select name="adviceList[' + adviceIndex + '][advice]" class="form-control advice-type-select" data-placeholder="Advice...">' +
-            '<option value=""></option>@foreach($advices as $a)<option value="{{ $a }}">{{ $a }}</option>@endforeach</select></div>' +
-            '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm remove-advice"><i class="fa fa-times"></i></button></div>' +
+            '<div class="col-md-9"><select name="adviceList[' + adviceIndex + '][advice]" class="form-control advice-type-select" data-placeholder="Advice..." data-type="advice">' +
+            '<option value=""></option>@foreach($advices as $a)<option value="{{ $a['name'] }}" data-id="{{ $a['id'] }}">{{ $a['name'] }}</option>@endforeach</select></div>' +
+            '<div class="col-md-3 opt-actions">' +
+            '<button type="button" class="btn btn-outline-info btn-sm edit-option-btn" title="Edit"><i class="fa fa-pencil-alt"></i></button> ' +
+            '<button type="button" class="btn btn-outline-danger btn-sm delete-option-btn" title="Delete"><i class="fa fa-trash"></i></button> ' +
+            '<button type="button" class="btn btn-danger btn-sm remove-advice"><i class="fa fa-times"></i></button></div>' +
             '</div>';
         $('#advices-container').append(html);
         initAddIfNotFound($('#advices-container .advice-row:last .advice-type-select'), 'advice');
@@ -568,8 +600,8 @@ $(function() {
     var invIndex = 1;
     $('#add-investigation').click(function() {
         var html = '<div class="investigation-row row">' +
-            '<div class="col-md-3"><select name="investigations[' + invIndex + '][type]" class="form-control inv-type-select" data-placeholder="Type">' +
-            '<option value=""></option>@foreach($investigationTypes as $invType)<option value="{{ $invType }}">{{ $invType }}</option>@endforeach</select></div>' +
+            '<div class="col-md-3"><select name="investigations[' + invIndex + '][type]" class="form-control inv-type-select" data-placeholder="Type" data-type="investigation_type">' +
+            '<option value=""></option>@foreach($investigationTypes as $invType)<option value="{{ $invType['name'] }}" data-id="{{ $invType['id'] }}">{{ $invType['name'] }}</option>@endforeach</select></div>' +
             '<div class="col-md-2"><input type="date" name="investigations[' + invIndex + '][date]" class="form-control"></div>' +
             '<div class="col-md-4"><input type="text" name="investigations[' + invIndex + '][findings]" class="form-control" placeholder="Findings"></div>' +
             '<div class="col-md-2"><input type="text" name="investigations[' + invIndex + '][facility]" class="form-control" placeholder="Facility"></div>' +
@@ -587,14 +619,14 @@ $(function() {
     var exIndex = 1;
     $('#add-exercise').click(function() {
         var html = '<div class="exercise-row row">' +
-            '<div class="col-md-3"><select name="exercises[' + exIndex + '][exercise_name]" class="form-control ex-name-select" data-placeholder="Exercise name">' +
-            '<option value=""></option>@foreach($exerciseNames as $exName)<option value="{{ $exName }}">{{ $exName }}</option>@endforeach</select></div>' +
+            '<div class="col-md-3"><select name="exercises[' + exIndex + '][exercise_name]" class="form-control ex-name-select" data-placeholder="Exercise name" data-type="exercise_name">' +
+            '<option value=""></option>@foreach($exerciseNames as $exName)<option value="{{ $exName['name'] }}" data-id="{{ $exName['id'] }}">{{ $exName['name'] }}</option>@endforeach</select></div>' +
             '<div class="col-md-2"><input type="text" name="exercises[' + exIndex + '][sets]" class="form-control" placeholder="Sets"></div>' +
             '<div class="col-md-1"><input type="text" name="exercises[' + exIndex + '][repetitions]" class="form-control" placeholder="Reps"></div>' +
             '<div class="col-md-2"><input type="text" name="exercises[' + exIndex + '][frequency]" class="form-control" placeholder="Frequency"></div>' +
             '<div class="col-md-1"><input type="text" name="exercises[' + exIndex + '][duration]" class="form-control" placeholder="Duration"></div>' +
-            '<div class="col-md-2"><select name="exercises[' + exIndex + '][category]" class="form-control ex-category-select" data-placeholder="Category">' +
-            '<option value=""></option>@foreach($exerciseCategories as $cat)<option value="{{ $cat }}">{{ ucfirst($cat) }}</option>@endforeach</select></div>' +
+            '<div class="col-md-2"><select name="exercises[' + exIndex + '][category]" class="form-control ex-category-select" data-placeholder="Category" data-type="exercise_category">' +
+            '<option value=""></option>@foreach($exerciseCategories as $cat)<option value="{{ $cat['name'] }}" data-id="{{ $cat['id'] }}">{{ ucfirst($cat['name']) }}</option>@endforeach</select></div>' +
             '<div class="col-md-1"><button type="button" class="btn btn-danger btn-sm remove-exercise"><i class="fa fa-times"></i></button></div>' +
             '</div>';
         $('#exercises-container').append(html);
@@ -606,6 +638,111 @@ $(function() {
     $(document).on('click', '.remove-exercise', function() {
         $(this).closest('.exercise-row').remove();
     });
+
+    $(document).on('click', '.edit-option-btn', function() {
+        var $row = $(this).closest('.row');
+        var $select = $row.find('select[data-type]');
+        var optionName = $select.val();
+        if (!optionName) { alert('Select an option first.'); return; }
+        var type = $select.data('type');
+        var $option = $select.find('option[value="' + optionName.replace(/"/g, '\\"') + '"]');
+        var optionId = $option.data('id');
+
+        $('#editOptionName').val(optionName);
+        $('#editOptionType').val(type);
+        $('#editOptionId').val(optionId || '');
+        $('#editOptionSelect').val($select.attr('name'));
+        $('#editOptionModal').modal('show');
+        setTimeout(function() { $('#editOptionName').focus(); }, 300);
+    });
+
+    $('#editOptionSave').click(function() {
+        var newName = $.trim($('#editOptionName').val());
+        var type = $('#editOptionType').val();
+        var optionId = $('#editOptionId').val();
+        var selectName = $('#editOptionSelect').val();
+        if (!newName) { alert('Name is required.'); return; }
+
+        if (optionId) {
+            $.ajax({
+                url: '{{ url("dropdown-options") }}/' + optionId,
+                type: 'PUT',
+                data: { _token: '{{ csrf_token() }}', name: newName },
+                success: function(res) {
+                    $('select[data-type="' + type + '"] option[data-id="' + optionId + '"]').each(function() {
+                        $(this).val(newName).text(newName);
+                    });
+                    $('select[name="' + selectName + '"]').val(newName).trigger('change');
+                    $('#editOptionModal').modal('hide');
+                },
+                error: function(xhr) {
+                    var msg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Update failed.';
+                    alert(msg);
+                }
+            });
+        } else {
+            $.post('{{ route("dropdown-options.quick") }}', {
+                _token: '{{ csrf_token() }}',
+                type: type,
+                name: newName
+            }).done(function(res) {
+                var $sel = $('select[name="' + selectName + '"]');
+                var $opt = $sel.find('option[value="' + optionName.replace(/"/g, '\\"') + '"]');
+                $opt.val(res.name).text(res.name).attr('data-id', res.id);
+                $sel.val(res.name).trigger('change');
+                $('#editOptionModal').modal('hide');
+            }).fail(function() { alert('Save failed.'); });
+        }
+    });
+
+    $(document).on('click', '.delete-option-btn', function() {
+        var $row = $(this).closest('.row');
+        var $select = $row.find('select[data-type]');
+        var optionName = $select.val();
+        if (!optionName) { alert('Select an option first.'); return; }
+        var type = $select.data('type');
+        var $option = $select.find('option[value="' + optionName.replace(/"/g, '\\"') + '"]');
+        var optionId = $option.data('id');
+
+        if (!confirm('Delete "' + optionName + '" from the master list?')) return;
+
+        if (optionId) {
+            $.ajax({
+                url: '{{ url("dropdown-options") }}/' + optionId,
+                type: 'DELETE',
+                data: { _token: '{{ csrf_token() }}' },
+                success: function() {
+                    $('select[data-type="' + type + '"] option[data-id="' + optionId + '"]').remove();
+                    $select.val('').trigger('change');
+                },
+                error: function() { alert('Delete failed.'); }
+            });
+        } else {
+            $select.find('option[value="' + optionName.replace(/"/g, '\\"') + '"]').remove();
+            $select.val('').trigger('change');
+        }
+    });
 });
 </script>
+
+<div class="modal fade" id="editOptionModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-sm" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title">Edit Option</h6>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editOptionType">
+                <input type="hidden" id="editOptionId">
+                <input type="hidden" id="editOptionSelect">
+                <input type="text" id="editOptionName" class="form-control" placeholder="Option name">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary btn-sm" id="editOptionSave">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection

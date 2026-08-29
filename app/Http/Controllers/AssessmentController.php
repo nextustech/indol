@@ -275,15 +275,17 @@ class AssessmentController extends Controller
 
     private function dropdownGroups()
     {
+        $toOptionArray = fn($q) => $q->orderBy('name')->get(['id', 'name'])->map(fn($o) => ['id' => $o->id, 'name' => $o->name])->values();
+
         return [
-            'investigationTypes' => DropdownOption::where('type', 'investigation_type')->orderBy('name')->pluck('name'),
-            'exerciseNames' => DropdownOption::where('type', 'exercise_name')->orderBy('name')->pluck('name'),
-            'exerciseCategories' => DropdownOption::where('type', 'exercise_category')->orderBy('name')->pluck('name'),
-            'specialTests' => DropdownOption::where('type', 'special_test')->orderBy('name')->pluck('name'),
-            'clinicalImpressions' => DropdownOption::where('type', 'clinical_impression')->orderBy('name')->pluck('name'),
-            'complaints' => DropdownOption::where('type', 'complaint')->orderBy('name')->pluck('name'),
-            'precautions' => DropdownOption::where('type', 'precaution')->orderBy('name')->pluck('name'),
-            'advices' => DropdownOption::where('type', 'advice')->orderBy('name')->pluck('name'),
+            'investigationTypes' => $toOptionArray(DropdownOption::where('type', 'investigation_type')),
+            'exerciseNames' => $toOptionArray(DropdownOption::where('type', 'exercise_name')),
+            'exerciseCategories' => $toOptionArray(DropdownOption::where('type', 'exercise_category')),
+            'specialTests' => $toOptionArray(DropdownOption::where('type', 'special_test')),
+            'clinicalImpressions' => $toOptionArray(DropdownOption::where('type', 'clinical_impression')),
+            'complaints' => $toOptionArray(DropdownOption::where('type', 'complaint')),
+            'precautions' => $toOptionArray(DropdownOption::where('type', 'precaution')),
+            'advices' => $toOptionArray(DropdownOption::where('type', 'advice')),
         ];
     }
 

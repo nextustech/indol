@@ -294,6 +294,8 @@ Route::group(['middleware' => 'auth'], function () {
         Route::delete('{id}/force', [App\Http\Controllers\AssessmentController::class, 'forceDelete'])->name('forceDelete');
     });
     Route::post('dropdown-options/quick', [App\Http\Controllers\DropdownOptionController::class, 'storeQuick'])->name('dropdown-options.quick');
+    Route::put('dropdown-options/{dropdownOption}', [App\Http\Controllers\DropdownOptionController::class, 'update'])->name('dropdown-options.update');
+    Route::delete('dropdown-options/{dropdownOption}', [App\Http\Controllers\DropdownOptionController::class, 'destroy'])->name('dropdown-options.destroy');
     Route::resource('assessments', App\Http\Controllers\AssessmentController::class);
     Route::get('assessmentPrint/{assessment}', [App\Http\Controllers\AssessmentController::class, 'print'])->name('assessmentPrint');
 
