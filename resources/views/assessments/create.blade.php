@@ -321,10 +321,10 @@
                                         <div id="exercises-container">
                                             <div class="exercise-row row">
                                                 <div class="col-md-3">
-                                                    <select name="exercises[0][exercise_name]" class="form-control ex-name-select" data-placeholder="Exercise name">
+                                                    <select name="exercises[0][exercise_name]" class="form-control ex-name-select" data-placeholder="Exercise name" data-type="exercise_name">
                                                         <option value=""></option>
                                                         @foreach($exerciseNames as $exName)
-                                                            <option value="{{ $exName }}">{{ $exName }}</option>
+                                                            <option value="{{ $exName['name'] }}" data-id="{{ $exName['id'] }}">{{ $exName['name'] }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
@@ -341,10 +341,10 @@
                                                     <input type="text" name="exercises[0][duration]" class="form-control" placeholder="Duration">
                                                 </div>
                                                 <div class="col-md-2">
-                                                    <select name="exercises[0][category]" class="form-control ex-category-select" data-placeholder="Category">
+                                                    <select name="exercises[0][category]" class="form-control ex-category-select" data-placeholder="Category" data-type="exercise_category">
                                                         <option value=""></option>
                                                         @foreach($exerciseCategories as $cat)
-                                                            <option value="{{ $cat }}">{{ ucfirst($cat) }}</option>
+                                                            <option value="{{ $cat['name'] }}" data-id="{{ $cat['id'] }}">{{ ucfirst($cat['name']) }}</option>
                                                         @endforeach
                                                     </select>
                                                 </div>
